@@ -199,8 +199,3 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 RESET_PASSWORD_TOKEN_EXPIRED = timedelta(minutes=15)
 EMAIL_USE_TLS = True
 #EMAIL_USE_SSL=False
-
-
-
-
-

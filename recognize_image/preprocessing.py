@@ -42,67 +42,52 @@ def resize(image, height):
 
 def predict(image):
     current_directory = os.path.join(os.getcwd(), "recognize_image")
-    model = os.path.join(current_directory, "model", "semantic_model.meta")
+    model_path = os.path.join(current_directory, "model", "semantic_model.meta")
+    voc_file = os.path.join(current_directory, "vocabulary_semantic.txt")
 
     tf.compat.v1.disable_eager_execution()
-    sess = tf.compat.v1.InteractiveSession()
-    # Restore weights
-    saver = tf.compat.v1.train.import_meta_graph(model)
-    saver.restore(sess, model[:-5])
-    graph = tf.compat.v1.get_default_graph()
-    with graph.as_default():
-        tf.compat.v1.get_collection_ref("model_variables").clear()
-    # access model
-    input = graph.get_tensor_by_name("model_input:0")
-    seq_len = graph.get_tensor_by_name("seq_lengths:0")
-    rnn_keep_prob = graph.get_tensor_by_name("keep_prob:0")
-    height_tensor = graph.get_tensor_by_name("input_height:0")
-    width_reduction_tensor = graph.get_tensor_by_name("width_reduction:0")
-    logits = tf.compat.v1.get_collection("logits")[0]
-    # Constants that are saved inside the model itself
-    WIDTH_REDUCTION, HEIGHT = sess.run([width_reduction_tensor, height_tensor])
-    decoded, _ = tf.nn.ctc_greedy_decoder(logits, seq_len)
 
-    voc_file = "vocabulary_semantic.txt"
-    # Read the dictionary
-    dict_file = open(os.path.join(current_directory, voc_file), "r")
+    with tf.compat.v1.Session() as sess:
+        saver = tf.compat.v1.train.import_meta_graph(model_path)
+        try:
+            saver.restore(sess, model_path[:-5])
+        except Exception as e:
+            print("Model restoration failed:", e)
+            return []
 
-    dict_list = dict_file.read().splitlines()
-    int2word = dict()
-    for word in dict_list:
-        word_idx = len(int2word)
-        int2word[word_idx] = word
-        dict_file.close()
+        graph = tf.compat.v1.get_default_graph()
+        input = graph.get_tensor_by_name("model_input:0")
+        seq_len = graph.get_tensor_by_name("seq_lengths:0")
+        rnn_keep_prob = graph.get_tensor_by_name("keep_prob:0")
+        height_tensor = graph.get_tensor_by_name("input_height:0")
+        width_reduction_tensor = graph.get_tensor_by_name("width_reduction:0")
+        logits = tf.compat.v1.get_collection("logits")[0]
 
-    image = resize(image, HEIGHT)
-    image = normalize(image)
-    image = np.asarray(image).reshape(1, image.shape[0], image.shape[1], 1)
-    seq_lengths = [image.shape[2] / WIDTH_REDUCTION]
-    prediction = sess.run(
-        decoded,
-        feed_dict={
+        WIDTH_REDUCTION, HEIGHT = sess.run([width_reduction_tensor, height_tensor])
+        decoded, _ = tf.nn.ctc_greedy_decoder(logits, seq_len)
+
+        with open(voc_file, "r") as f:
+            dict_list = f.read().splitlines()
+        int2word = {i: word for i, word in enumerate(dict_list)}
+
+        image = resize(image, HEIGHT)
+        image = normalize(image)
+        image = np.asarray(image).reshape(1, image.shape[0], image.shape[1], 1)
+        seq_lengths = [image.shape[2] // WIDTH_REDUCTION]
+
+        prediction = sess.run(decoded, feed_dict={
             input: image,
             seq_len: seq_lengths,
             rnn_keep_prob: 1.0,
-        },
-    )
+        })
 
-    str_predictions = sparse_tensor_to_strs(prediction)
-    array_of_notes = []
-    for w in str_predictions[0]:
-        array_of_notes.append(int2word[w])
-    notes = []
-    for i in array_of_notes:
-        if i[0:5] == "note-":
-            if not i[6].isdigit():
-                notes.append(i[5:])
-            else:
-                notes.append(i[5:])
-    return notes
+        str_predictions = sparse_tensor_to_strs(prediction)
+        notes = [int2word[w][5:] for w in str_predictions[0] if int2word[w].startswith("note-")]
+        return notes
 
 
 def sound_midi(notes):
-    # Define note duration values
+    # Define note duration values in beats
     duration_dict = {
         "whole": 4.0,
         "whole.": 6.0,
@@ -121,62 +106,49 @@ def sound_midi(notes):
         "128th": 0.03125,
     }
 
-    # Set some MIDI parameters
+    # MIDI setup
     BPM = 60
     NUM_TICKS_PER_BEAT = 480
-
-    # Create a MIDI file object
     midifile = MIDIFile(1)
-
-    # Add a track to the MIDI file
     track = 0
-    midifile.addTrackName(track, time=0, trackName="Sheet Music Track")
-    midifile.addTempo(track, time=0, tempo=int(400 * BPM))
-
-    time = 0
     channel = 0
+    time = 0
+
+    midifile.addTrackName(track, time=0, trackName="Sheet Music Track")
+    midifile.addTempo(track, time=0, tempo=BPM)
+
+    pitch_classes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
     for note_str in notes:
-        note_parts = note_str.split("_")
-        pitch_name = note_parts[0]
-        duration_name = note_parts[1]
+        try:
+            pitch_name, duration_name = note_str.split("_")
+            # Extract pitch class and octave
+            for pc in pitch_classes:
+                if pitch_name.startswith(pc):
+                    pitch_class = pc
+                    octave = int(pitch_name[len(pc):])
+                    break
+            else:
+                raise ValueError(f"Unknown pitch: {pitch_name}")
 
-        # Convert the note name to MIDI pitch value
-        pitch_classes = [
-            "C",
-            "C#",
-            "D",
-            "D#",
-            "E",
-            "F",
-            "F#",
-            "G",
-            "G#",
-            "A",
-            "A#",
-            "B",
-        ]
-        pitch_num = pitch_classes.index(pitch_name[0])
+            pitch_num = pitch_classes.index(pitch_class)
+            midi_pitch = 12 * (octave + 1) + pitch_num  # MIDI note number
 
-        # Calculate the MIDI note number for the given note name
-        if pitch_name[-1].isdigit():
-            note_pitch = int(pitch_name[-1]) + (int(pitch_num) + 1) * 12
-        else:
-            note_pitch = (int(pitch_name[1]) + 1) * 12
+            if duration_name not in duration_dict:
+                raise ValueError(f"Unknown duration: {duration_name}")
+            duration_beats = duration_dict[duration_name]
+            duration_ticks = int(duration_beats * NUM_TICKS_PER_BEAT)
 
-        # Get the duration in ticks
-        note_duration = duration_dict[duration_name]
-        duration_ticks = int(note_duration * NUM_TICKS_PER_BEAT)
+            midifile.addNote(
+                track=track,
+                channel=channel,
+                pitch=midi_pitch,
+                time=time,
+                duration=duration_ticks,
+                volume=127,
+            )
+            time += duration_beats  # Advance time in beats, not ticks
+        except Exception as e:
+            print(f"Skipping invalid note '{note_str}': {e}")
 
-        # Add the note to the MIDI file
-        midifile.addNote(
-            track=track,
-            channel=channel,
-            pitch=note_pitch,
-            time=time,
-            duration=duration_ticks,
-            volume=127,
-        )
-
-        # Increment the time counter
-        time += duration_ticks
     return midifile

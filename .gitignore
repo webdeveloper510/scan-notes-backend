@@ -132,3 +132,13 @@ dmypy.json
 .env__
 
 
+# Ignore virtualenv file
+myenv
+/myenv
+
+# ignore media 
+media
+
+# Ignore package.json and service account json
+package.json
+service_account.json

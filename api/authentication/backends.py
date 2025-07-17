@@ -29,11 +29,13 @@ class ActiveSessionAuthentication(authentication.BaseAuthentication):
         try:
             jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except:
+            print("first exception")
             raise exceptions.AuthenticationFailed(self.auth_error_message)
 
         try:
             active_session = ActiveSession.objects.get(token=token)
         except:
+            print("second exception")
             raise exceptions.AuthenticationFailed(self.auth_error_message)
 
         try:

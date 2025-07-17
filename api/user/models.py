@@ -93,15 +93,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.email}"
 
 
-
-
-
-
-
-
-
-
-
-
+# Model for Contact Support 
+class ContactSupportModel(models.Model):
+    email = models.EmailField()
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    reason = models.CharField(max_length=100)
+    message = models.TextField()
 
 

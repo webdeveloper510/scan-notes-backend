@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 import environ
 from pathlib import Path
+from datetime import timedelta , datetime
+
 
 env = environ.Env(
     # set casting, default value
@@ -47,7 +49,8 @@ INSTALLED_APPS = [
     "api",
     "api.user",
     "api.authentication",
-    # "sslserver",
+    "sslserver",
+    #"django_rest_passwordreset",
 ]
 
 MIDDLEWARE = [
@@ -66,7 +69,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -90,7 +93,7 @@ DATABASES = {
         "NAME": env("DB_DATABASE", default=os.path.join(BASE_DIR, "db.sqlite3")),
         "USER": env("DB_USER", default=None),
         "PASSWORD": env("DB_PASSWORD", default=None),
-        "HOST": env("DB_HOST", default=None),
+        "HOST": env("DB_HOST", default='None'),
         "PORT": env("DB_PORT", default=None),
     }
 }
@@ -148,7 +151,9 @@ REST_FRAMEWORK = {
         "api.authentication.backends.ActiveSessionAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+
 }
+
 
 # ##################################################################### #
 #  CORS
@@ -181,5 +186,21 @@ MEDIA_URL = "/media/"
 os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", "service_account.json")
 
 os.environ.setdefault(
-    "OPENAI_API_KEY", "<use api key here>"
+    "OPENAI_API_KEY", "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"
 )
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587 #465
+EMAIL_HOST_USER = "sumit@codenomad.net"
+EMAIL_HOST_PASSWORD = "dlfq dctg pmai szed"
+RESET_PASSWORD_TOKEN_EXPIRED = timedelta(minutes=15)
+EMAIL_USE_TLS = True
+#EMAIL_USE_SSL=False
+
+
+
+
+

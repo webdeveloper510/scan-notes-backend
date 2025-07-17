@@ -9,7 +9,7 @@ from rest_framework import mixins
 
 class UserViewSet(
     viewsets.GenericViewSet, mixins.CreateModelMixin, mixins.UpdateModelMixin
-    ):
+):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
 

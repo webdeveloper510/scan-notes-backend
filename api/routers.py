@@ -4,6 +4,7 @@ from api.authentication.viewsets import (
     ActiveSessionViewSet,
     LogoutViewSet,
 )
+
 from rest_framework import routers
 from api.user.viewsets import UserViewSet
 from django.urls import path, include
@@ -20,6 +21,8 @@ router.register(r"checkSession", ActiveSessionViewSet,
                 basename="check-session")
 
 router.register(r"logout", LogoutViewSet, basename="logout")
+
+
 
 urlpatterns = [
     *router.urls,

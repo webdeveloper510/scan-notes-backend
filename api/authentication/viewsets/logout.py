@@ -15,8 +15,10 @@ class LogoutViewSet(viewsets.GenericViewSet, mixins.CreateModelMixin):
             sessions = ActiveSession.objects.filter(user=user)
             for session in sessions:
                 session.delete()
+
         except ObjectDoesNotExist:
             return Response("No active session found", status=status.HTTP_404_NOT_FOUND)
+        
         except MultipleObjectsReturned:
             # Handle the case where multiple active sessions exist
             # Choose one session to delete or delete all sessions

@@ -194,8 +194,8 @@ os.environ.setdefault(
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587 #465
-EMAIL_HOST_USER = "sumit@codenomad.net"
-EMAIL_HOST_PASSWORD = "dlfq dctg pmai szed"
+EMAIL_HOST_USER = os.getenv('EMAIL')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 RESET_PASSWORD_TOKEN_EXPIRED = timedelta(minutes=15)
 EMAIL_USE_TLS = True
 #EMAIL_USE_SSL=False

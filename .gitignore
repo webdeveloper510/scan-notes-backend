@@ -142,3 +142,8 @@ media
 # Ignore package.json and service account json
 package.json
 service_account.json
+
+
+
+# IGNORE ENV file
+env

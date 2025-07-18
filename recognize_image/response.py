@@ -30,7 +30,7 @@ def FREE_TRAIL_EXPIRED_RESPONSE(Trail_Status , message):
 def TRAIL_PENDING(Trail_Status , message):
     
     return Response({
-        "status": status.HTTP_403_FORBIDDEN,
+        "status": status.HTTP_200_OK,
         "trial": Trail_Status,
         "message":message
         })

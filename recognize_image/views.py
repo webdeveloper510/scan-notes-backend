@@ -19,7 +19,7 @@ from rest_framework.views import APIView
 from .utils import *
 from .response import *
 from api.user.models import *
-
+from rest_framework.permissions import IsAuthenticated
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
@@ -55,12 +55,14 @@ class UserFreeTRailStausView(APIView):
 
 
 class RecognizeImage(APIView):
+    permission_classes = (IsAuthenticated,)
     def post(self ,request , format=None):
         sheet_music_data = []
         sheet_midi_data = []
         sheet_wav_data = []
 
         try:
+            print(":token url =====> ", request.user.email)
             email = request.data.get("email")
             original_image = request.FILES.get("photo_img")
             selectedImageURL = request.FILES.getlist("selectedImageURL")

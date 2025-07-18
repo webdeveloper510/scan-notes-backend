@@ -43,10 +43,10 @@ class UserFreeTRailStausView(APIView):
 
             # Check trial limit
             if file_count > 5 and not is_paid:
-                return FREE_TRAIL_EXPIRED_RESPONSE(is_paid ,"Your free trial limit has expired" )
+                return FREE_TRAIL_EXPIRED_RESPONSE(False ,"Your free trial limit has expired" )
             
             # if free trial is pending
-            return TRAIL_PENDING(is_paid ,  "Trial access is valid")
+            return TRAIL_PENDING(True ,  "Trial access is valid")
 
         except Exception as e:
             exc_type , exc_obj , exc_tb = sys.exc_info()

@@ -17,21 +17,21 @@ def NOT_FOUND_RESPONSE(message):
     })
 
 
-def FREE_TRAIL_EXPIRED_RESPONSE(is_paid , message):
+def FREE_TRAIL_EXPIRED_RESPONSE(Trail_Status , message):
     
     return Response({
         "status": status.HTTP_403_FORBIDDEN,
-        "trial": is_paid,
+        "trial": Trail_Status,
         "message":message
         })
 
 
 
-def TRAIL_PENDING(is_paid , message):
+def TRAIL_PENDING(Trail_Status , message):
     
     return Response({
         "status": status.HTTP_403_FORBIDDEN,
-        "trial": is_paid,
+        "trial": Trail_Status,
         "message":message
         })
 

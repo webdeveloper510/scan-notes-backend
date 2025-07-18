@@ -64,7 +64,7 @@ class RecognizeImage(APIView):
         sheet_wav_data = []
 
         try:
-            # email = request.data.get("email")                         # for local
+            #email = request.data.get("email")                         # for local
             email = request.user.email                                  # for live
             original_image = request.FILES.get("photo_img")
             selectedImageURL = request.FILES.getlist("selectedImageURL")
@@ -79,9 +79,9 @@ class RecognizeImage(APIView):
             
             # Get user object
             user_obj = User.objects.filter(email=email).first()
-            res = ImageEditingTrack(user_obj , original_image, selectedImageURL)
+            OriginalFileCount, original_image_url = OriginalImageTrack(user_obj , original_image)
+            res = ImageEditingTrack(user_obj , original_image_url, selectedImageURL)
 
-            OriginalFileCount = OriginalImageTrack(user_obj , original_image)
             idx = 0
             
             #Iterate through each uploaded image
@@ -159,7 +159,7 @@ class UserImagesHistoryView(APIView):
     def get(self, request, format=None):
         try:
             # Get email from request
-            # email = request.data.get("email")                 # FOR Local
+            #email = request.data.get("email")                 # FOR Local
             email = request.user.email                          # FOR live
             
             # Get user object

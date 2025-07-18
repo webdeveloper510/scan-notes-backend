@@ -32,11 +32,11 @@ def OriginalImageTrack(user , original_image):
                 destination.write(chunk)
 
         # Create object in database
-        ImageAnalysisModel.objects.create(
-            user=user,
-            original_image=original_image.name,
-            file_url=FILE_URL,
-        )
+        # ImageAnalysisModel.objects.create(
+        #     user=user,
+        #     original_image=original_image.name,
+        #     file_url=FILE_URL,
+        # )
 
         # Increase user file_uploaded count
         user.file_upload_count += 1
@@ -44,7 +44,7 @@ def OriginalImageTrack(user , original_image):
 
         # Now get the updated count
         updated_file_count = user.file_upload_count
-        return updated_file_count
+        return updated_file_count , FILE_URL
     
     except Exception as e:
         exc_type , exc_obj , exc_tb = sys.exc_info()
@@ -52,14 +52,13 @@ def OriginalImageTrack(user , original_image):
         return error_message
     
 
-def ImageEditingTrack(user , original_image , FileArray):
+def ImageEditingTrack(user , original_image_url , FileArray):
     try:
-         # Define directory for cropped images
+        # Define directory for cropped images
         original_image_dir = os.path.join(MEDIA_ROOT, "crop_images", user.first_name)
         os.makedirs(original_image_dir, exist_ok=True)
 
         file_data = []
-
         for file in FileArray:
             Name_parse = generate_random_string(5)
             crop_file_name = f"{file.name}-{Name_parse}"
@@ -81,10 +80,10 @@ def ImageEditingTrack(user , original_image , FileArray):
                 "file_url": file_url
             })
 
-        # Save crop history in DB
+        #Save crop history in DB
         CropImageHistoryModel.objects.create(
             user=user,
-            orignal_image= original_image.name,
+            orignal_image=original_image_url ,
             crop_images=file_data
         )
 

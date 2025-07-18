@@ -23,14 +23,15 @@ from rest_framework.permissions import IsAuthenticated
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
-    def post(self, request, format=None):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
 
         try: 
             # Get email from request
-            email = request.data.get("email")
-            if not email:
-                return BAD_REQUEST_RESPONSE("Email is required. Please provide it using the key 'email'.")
-            
+            #email = request.data.get("email")                          # for local                  
+            email = request.user.email                                  # for live
+
             # Get user object
             user_obj = User.objects.filter(email=email).first()
 
@@ -55,26 +56,23 @@ class UserFreeTRailStausView(APIView):
 
 
 class RecognizeImage(APIView):
+
     permission_classes = (IsAuthenticated,)
+
     def post(self ,request , format=None):
         sheet_music_data = []
         sheet_midi_data = []
         sheet_wav_data = []
 
         try:
-            print(":token url =====> ", request.user.email)
-            email = request.data.get("email")
+            # email = request.data.get("email")                         # for local
+            email = request.user.email                                  # for live
             original_image = request.FILES.get("photo_img")
             selectedImageURL = request.FILES.getlist("selectedImageURL")
-
-            # Email not found handling 
-            if not email:
-                return BAD_REQUEST_RESPONSE("Email is required. Please provide it using the key 'email'.")
 
             if not original_image:
                 return BAD_REQUEST_RESPONSE("original image is required. Please provide it using the key 'photo_img'.")
 
-                    
             # # Initialize a list to store the recognized sheet music data
             if not selectedImageURL:
                 return BAD_REQUEST_RESPONSE("Please upload an image before proceeding.")
@@ -157,12 +155,13 @@ class RecognizeImage(APIView):
 
 # API FOR GET HISTORY 
 class UserImagesHistoryView(APIView):
-    def post(self, request, format=None):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, format=None):
         try:
             # Get email from request
-            email = request.data.get("email")
-            if not email:
-                return BAD_REQUEST_RESPONSE("Email is required. Please provide it using the key 'email'.")
+            # email = request.data.get("email")                 # FOR Local
+            email = request.user.email                          # FOR live
             
             # Get user object
             user_obj = User.objects.filter(email=email).first()

@@ -153,6 +153,33 @@ class RecognizeImage(APIView):
             return InternalServer_Response(error_messsage)
         
 
+# API FOR GET HISTORY 
+class UserImagesHistoryView(APIView):
+    def post(self, request, format=None):
+        try:
+            # Get email from request
+            email = request.data.get("email")
+            if not email:
+                return BAD_REQUEST_RESPONSE("Email is required. Please provide it using the key 'email'.")
+            
+            # Get user object
+            user_obj = User.objects.filter(email=email).first()
+
+            # Filter out crop data
+            user_history_obj = CropImageHistoryModel.objects.filter(user_id =user_obj.id).all().values()
+
+            if not user_history_obj:
+                return NOT_FOUND_RESPONSE("User  haven't uploaded any cropped images yet.")
+            
+            return Response({
+                "status": status.HTTP_200_OK ,
+                "data": list(user_history_obj)
+            })
+
+        except Exception as e:
+            exc_type , exc_obj , exc_tb = sys.exc_info()
+            error_messsage = f'failed to upload image error occur {str(e)} at line {exc_tb.tb_lineno}'
+            return InternalServer_Response(error_messsage)
 """
 class RecognizeImage(APIView):
     def post(self ,request , format=None):

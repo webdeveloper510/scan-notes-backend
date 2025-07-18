@@ -76,6 +76,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     school = models.CharField(max_length=255)
     teacher = models.BooleanField(default=False)
     software = models.CharField(max_length=255)
+    subscription_status =models.BooleanField(default=False) 
+    file_upload_count = models.IntegerField(default=0)
+
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
@@ -102,3 +105,20 @@ class ContactSupportModel(models.Model):
     message = models.TextField()
 
 
+
+# Model for user track
+class ImageAnalysisModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    original_image = models.FileField(upload_to='media/')  # Stores both images & videos
+    file_url = models.CharField(max_length=200 , null=True  , blank =True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+   
+
+
+# Model for user track
+class CropImageHistoryModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    orignal_image = models.CharField(max_length=500 , null=True , blank=True)
+    crop_images = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

@@ -10,3 +10,4 @@ urlpatterns = [
     path('reset-password/<str:token>/', ResetPassword.as_view()),
     path('contact-support', ContactSupportView.as_view()),
 ]
+

@@ -15,11 +15,13 @@ import environ
 from pathlib import Path
 from datetime import timedelta , datetime
 
+HOST ="live"
 
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, True)
 )
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -178,17 +180,28 @@ if CORS_ALLOWED_ORIGINS_ENV:
 TESTING = False
 TEST_RUNNER = "core.test_runner.CoreTestRunner"
 
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+STATIC_ROOT ='staticfiles'
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR,"static")]
+
+STATIC_URL = '/static/'
 MEDIA_URL = "/media/"
 
+# define media root 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static', 'media')  # Ensure this directory exists
+
+if HOST =='local':
+    BASE_URL='http://127.0.0.1:8000/media'
+else:
+    BASE_URL='https://api.fichedetravail.com//media'
 
 os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", "service_account.json")
 
 os.environ.setdefault(
     "OPENAI_API_KEY", "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"
 )
-
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

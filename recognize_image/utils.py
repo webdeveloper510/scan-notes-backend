@@ -2,6 +2,15 @@ import os
 import sys
 from api.user.models import ImageAnalysisModel , CropImageHistoryModel
 from core.settings import MEDIA_ROOT , BASE_URL
+import random 
+import string
+
+
+def generate_random_string(length):
+    characters = string.ascii_letters + string.digits
+    random_string = ''.join(random.choice(characters) for _ in range(length))
+    return random_string
+
 
 def OriginalImageTrack(user , original_image):
     try:
@@ -52,7 +61,9 @@ def ImageEditingTrack(user , original_image , FileArray):
         file_data = []
 
         for file in FileArray:
-            file_path = os.path.join(original_image_dir, file.name)
+            Name_parse = generate_random_string(5)
+            crop_file_name = f"{file.name}-{Name_parse}"
+            file_path = os.path.join(original_image_dir, crop_file_name)
             file_url = file_path.replace(MEDIA_ROOT, BASE_URL)
 
             # Replace existing file if it exists

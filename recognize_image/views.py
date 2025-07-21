@@ -202,7 +202,7 @@ class EditUserHistory(APIView):
             file_array = user_history_obj.crop_images or []
 
             # Save new files
-            original_image_dir = os.path.join(MEDIA_ROOT, "crop_images", request.user.name)
+            original_image_dir = os.path.join(MEDIA_ROOT, "crop_images", request.user.first_name)
             os.makedirs(original_image_dir, exist_ok=True)
 
             if new_images_obj:

@@ -73,103 +73,105 @@ class RecognizeImage(APIView):
             original_image = request.FILES.get("photo_img")
             selectedImageURL = request.FILES.getlist("selectedImageURL")
 
-
-
             if not object_id:
                 return BAD_REQUEST_RESPONSE("Object ID is required. Please provide it using the key 'object_id'.")
 
             if not original_image:
                 return BAD_REQUEST_RESPONSE("original image is required. Please provide it using the key 'photo_img'.")
 
-            # # Initialize a list to store the recognized sheet music data
-            if not selectedImageURL:
-                return BAD_REQUEST_RESPONSE("Please upload an image before proceeding.")
+            # Initialize a list to store the recognized sheet music data
+            if selectedImageURL:
 
-            # Get user object
-            object_id = int(object_id) if object_id else 0
-            user_obj = User.objects.filter(email=email).first()
-            if not user_obj:
-                return BAD_REQUEST_RESPONSE("Invalid user email")
-            
-            OriginalFileCount = 0
-            original_image_url = None
-            if object_id == 0:
-                OriginalFileCount, original_image_url = OriginalImageTrack(user_obj , original_image)
+                # Get user object
+                object_id = int(object_id) if object_id else 0
+                user_obj = User.objects.filter(email=email).first()
+                if not user_obj:
+                    return BAD_REQUEST_RESPONSE("Invalid user email")
+                
+                OriginalFileCount = 0
+                original_image_url = None
+                if object_id == 0:
+                    OriginalFileCount, original_image_url = OriginalImageTrack(user_obj , original_image)
+                
+                elif selectedImageURL is None and object_id > 0:
+                    #Reuse existing image URL from DB
+                    crop_history_obj = CropImageHistoryModel.objects.filter(id=object_id).first()
+                    if not crop_history_obj:
+                        return BAD_REQUEST_RESPONSE("Invalid object ID provided")
+                    
+                    original_image_url = crop_history_obj.orignal_image  # spelling preserved from your model
+
+                # call to function for save crop images
+                res = ImageEditingTrack(object_id, user_obj , original_image_url, selectedImageURL)
+                idx = 0
+                
+                #Iterate through each uploaded image
+                for image_obj in selectedImageURL:
+                    print('image object ', image_obj)
+                    idx = idx + 1
+                    image = Image.open(image_obj).convert("L")          # Convert image into grayscale
+                    image_array = np.array(image)
+
+                    ret, thresh = cv2.threshold(
+                        image_array, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+                    )
+                    cv2.imwrite("image.png", thresh)
+                    Result = predict(thresh)
+
+                    
+                    Result_str = ""  # text of music sheet
+                    for i in Result:
+                        note_str = str(i)
+                        Result_str = Result_str + note_str + " , "
+
+                    # print(Result_str)
+                    sheet_music_data.append(Result_str)
+
+                    Midi = sound_midi(Result)  # midi of music sheet
+                    # Save the MIDI file
+                    output_mid = str(uuid.uuid4()) + ".mid"
+
+                    output_path = os.path.join("media", output_mid)
+
+                    with open(output_path, "wb") as output_file:
+                        Midi.writeFile(output_file)
+
+                    sheet_midi_data.append(output_path)
+
+                    # Convert MIDI to WAV using FluidSynth
+                    wav_output = str(uuid.uuid4()) + ".wav"
+                    wav_output_path = os.path.join("media", wav_output)
+
+                    soundfont_file = os.path.join(
+                        os.getcwd(), "recognize_image", "sound_font.sf2"
+                    )
+
+                    fluidsynth = FluidSynth(sound_font=soundfont_file)
+                    fluidsynth.midi_to_audio(output_path, wav_output_path)
+
+                    sheet_wav_data.append(wav_output_path)
+
+                    response_dict ={
+                        "status": True,
+                        "file_count": len(selectedImageURL),
+                        "sheet_music_data": sheet_music_data,
+                        "sheet_midi_data": sheet_midi_data,
+                        "sheet_wav_data": sheet_wav_data,  # Include the MP3 file paths in the response
+                    }
+
+                    # Return Response
+                    return Response({
+                        "status"  : status.HTTP_200_OK,
+                        "user_file_track": OriginalFileCount,
+                        "data": response_dict
+                        
+                        })
             
             else:
-                #Reuse existing image URL from DB
-                crop_history_obj = CropImageHistoryModel.objects.filter(id=object_id).first()
-                if not crop_history_obj:
-                    return BAD_REQUEST_RESPONSE("Invalid object ID provided")
-                
-                original_image_url = crop_history_obj.orignal_image  # spelling preserved from your model
-
-            # call to function for save crop images
-            res = ImageEditingTrack(object_id, user_obj , original_image_url, selectedImageURL)
-            idx = 0
-            
-            #Iterate through each uploaded image
-            for image_obj in selectedImageURL:
-                print('image object ', image_obj)
-                idx = idx + 1
-                image = Image.open(image_obj).convert("L")          # Convert image into grayscale
-                image_array = np.array(image)
-
-                ret, thresh = cv2.threshold(
-                    image_array, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-                )
-                cv2.imwrite("image.png", thresh)
-                Result = predict(thresh)
-
-                
-                Result_str = ""  # text of music sheet
-                for i in Result:
-                    note_str = str(i)
-                    Result_str = Result_str + note_str + " , "
-
-                # print(Result_str)
-                sheet_music_data.append(Result_str)
-
-                Midi = sound_midi(Result)  # midi of music sheet
-                # Save the MIDI file
-                output_mid = str(uuid.uuid4()) + ".mid"
-
-                output_path = os.path.join("media", output_mid)
-
-                with open(output_path, "wb") as output_file:
-                    Midi.writeFile(output_file)
-
-                sheet_midi_data.append(output_path)
-
-                # Convert MIDI to WAV using FluidSynth
-                wav_output = str(uuid.uuid4()) + ".wav"
-                wav_output_path = os.path.join("media", wav_output)
-
-                soundfont_file = os.path.join(
-                    os.getcwd(), "recognize_image", "sound_font.sf2"
-                )
-
-                fluidsynth = FluidSynth(sound_font=soundfont_file)
-                fluidsynth.midi_to_audio(output_path, wav_output_path)
-
-                sheet_wav_data.append(wav_output_path)
-
-                response_dict ={
-                    "status": True,
-                    "file_count": len(selectedImageURL),
-                    "sheet_music_data": sheet_music_data,
-                    "sheet_midi_data": sheet_midi_data,
-                    "sheet_wav_data": sheet_wav_data,  # Include the MP3 file paths in the response
-                }
-
-                # Return Response
                 return Response({
-                    "status"  : status.HTTP_200_OK,
-                    "user_file_track": OriginalFileCount,
-                    "data": response_dict
-                      
-                    })
-
+                    "status": status.HTTP_200_OK,
+                    "message": "No any action perform"
+                })
         except Exception as e:
             exc_type , exc_obj , exc_tb = sys.exc_info()
             error_messsage = f'failed to upload image error occur {str(e)} at line {exc_tb.tb_lineno}'

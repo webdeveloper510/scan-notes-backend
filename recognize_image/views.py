@@ -160,7 +160,7 @@ class UserImagesHistoryView(APIView):
     def get(self, request, format=None):
         try:
             # Get email from request
-            e#mail = request.data.get("email")                 # FOR Local
+            #email = request.data.get("email")                 # FOR Local
             email = request.user.email                          # FOR live
             
             # Get user object

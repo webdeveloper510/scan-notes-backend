@@ -1,4 +1,4 @@
-from api.user.models import User
+from api.user.models import User , CropImageHistoryModel
 from rest_framework import serializers
 
 
@@ -23,3 +23,9 @@ class UserSerializer(serializers.ModelSerializer):
             "file_upload_count"
         ]
         read_only_field = ["id"]
+
+
+class EditUserHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CropImageHistoryModel
+        fields = '__all__'

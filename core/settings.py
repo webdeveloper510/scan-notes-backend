@@ -195,7 +195,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'static', 'media')  # Ensure this directory 
 if HOST =='local':
     BASE_URL='http://127.0.0.1:8000/media'
 else:
-    BASE_URL='https://api.fichedetravail.com//media'
+    BASE_URL='https://api.fichedetravail.com/media'
 
 os.environ.setdefault("GOOGLE_APPLICATION_CREDENTIALS", "service_account.json")
 

@@ -20,6 +20,7 @@ from .utils import *
 from .response import *
 from api.user.models import *
 from rest_framework.permissions import IsAuthenticated
+from api.user.serializers import EditUserHistorySerializer
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
@@ -159,7 +160,7 @@ class UserImagesHistoryView(APIView):
     def get(self, request, format=None):
         try:
             # Get email from request
-            #email = request.data.get("email")                 # FOR Local
+            e#mail = request.data.get("email")                 # FOR Local
             email = request.user.email                          # FOR live
             
             # Get user object
@@ -178,5 +179,59 @@ class UserImagesHistoryView(APIView):
 
         except Exception as e:
             exc_type , exc_obj , exc_tb = sys.exc_info()
-            error_messsage = f'failed to upload image error occur {str(e)} at line {exc_tb.tb_lineno}'
+            error_messsage = f'failed to get user history,  error occur {str(e)} at line {exc_tb.tb_lineno}'
             return InternalServer_Response(error_messsage)
+
+
+# API FOR EDIT HISTORY 
+class EditUserHistory(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, format=None):
+        try:
+            object_id = request.data.get("obj_id")
+            new_images_obj = request.FILES.getlist("newCropImages")
+
+            if not object_id:
+                return Response({"message": "Object Id is required. Please provide it using the key 'obj_id'."})
+
+            user_history_obj = CropImageHistoryModel.objects.filter(id=object_id).first()
+            if not user_history_obj:
+                return NOT_FOUND_RESPONSE("No Object found with ID: {}".format(object_id))
+
+            file_array = user_history_obj.crop_images or []
+
+            # Save new files
+            original_image_dir = os.path.join(MEDIA_ROOT, "crop_images", request.user.name)
+            os.makedirs(original_image_dir, exist_ok=True)
+
+            if new_images_obj:
+                for file in new_images_obj:
+                    random_name = generate_random_string(5)
+                    crop_file_name = f"{file.name}-{random_name}"
+                    file_path = os.path.join(original_image_dir, crop_file_name)
+                    file_url = file_path.replace(MEDIA_ROOT, BASE_URL)
+
+                    # Replace existing file
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+
+                    with open(file_path, 'wb') as destination:
+                        for chunk in file.chunks():
+                            destination.write(chunk)
+
+                    file_array.append({
+                        "file_name": file.name,
+                        "file_url": file_url
+                    })
+
+                user_history_obj.crop_images = file_array
+                user_history_obj.save()
+
+            json_data = EditUserHistorySerializer(user_history_obj).data
+            return Response({"status": status.HTTP_200_OK, "data": json_data})
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
+            return InternalServer_Response(error_message)

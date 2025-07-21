@@ -31,12 +31,12 @@ def OriginalImageTrack(user , original_image):
             for chunk in original_image.chunks():
                 destination.write(chunk)
 
-        # Create object in database
-        # ImageAnalysisModel.objects.create(
-        #     user=user,
-        #     original_image=original_image.name,
-        #     file_url=FILE_URL,
-        # )
+        #Create object in database
+        ImageAnalysisModel.objects.create(
+            user=user,
+            original_image=original_image.name,
+            file_url=FILE_URL,
+        )
 
         # Increase user file_uploaded count
         user.file_upload_count += 1

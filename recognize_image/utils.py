@@ -51,47 +51,54 @@ def OriginalImageTrack(user, original_image):
         return error_message
     
 
+
 def ImageEditingTrack(object_id, user, original_image_url, FileArray):
     try:
-
         original_image_dir = os.path.join(MEDIA_ROOT, "crop_images", user.first_name)
         os.makedirs(original_image_dir, exist_ok=True)
 
         file_data = []
+
         for file in FileArray:
             name_suffix = generate_random_string(5)
             crop_file_name = f"{file.name}-{name_suffix}"
             file_path = os.path.join(original_image_dir, crop_file_name)
             file_url = file_path.replace(MEDIA_ROOT, BASE_URL)
 
-            if os.path.exists(file_path):
-                os.remove(file_path)
-
+            # Save file
             with open(file_path, 'wb') as destination:
                 for chunk in file.chunks():
                     destination.write(chunk)
 
             file_data.append({
-                "file_name": file.name,
+                "file_name": original_image_url,
                 "file_url": file_url
             })
 
+        # Update existing history
         if object_id > 0:
             user_history_obj = CropImageHistoryModel.objects.filter(id=object_id).first()
             if user_history_obj:
-                user_history_obj.crop_images = file_data
-                user_history_obj.save()
-                return True  # updated, no need to create new one
+                existing_data = user_history_obj.crop_images or []
+                # Avoid duplicates
+                new_data = [
+                    item for item in file_data
+                    if item['file_url'] not in [existing['file_url'] for existing in existing_data]
+                ]
+                if new_data:
+                    user_history_obj.crop_images = existing_data + new_data
+                    user_history_obj.save()
+                return True
 
-        # Only create new if object_id <= 0
+        # Create new record if object_id is 0 or not found
         CropImageHistoryModel.objects.create(
             user=user,
             orignal_image=original_image_url,
             crop_images=file_data
         )
-
         return True
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         return f"Failed to save data in CropImageHistoryModel: {str(e)} at line {exc_tb.tb_lineno}"
+

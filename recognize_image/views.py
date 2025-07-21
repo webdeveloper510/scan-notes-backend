@@ -57,7 +57,7 @@ class UserFreeTRailStausView(APIView):
 
 
 class RecognizeImage(APIView):
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self ,request , format=None):
         sheet_music_data = []
@@ -65,14 +65,15 @@ class RecognizeImage(APIView):
         sheet_wav_data = []
 
         try:
-            email = request.data.get("email")                         # for local
-            #email = request.user.email                                  # for live
+            #email = request.data.get("email")                         # for local
+            email = request.user.email                                  # for live
 
             # GET POST DATA
             object_id = request.data.get("object_id")
-            object_id = int(object_id) if object_id else 0
             original_image = request.FILES.get("photo_img")
             selectedImageURL = request.FILES.getlist("selectedImageURL")
+
+
 
             if not object_id:
                 return BAD_REQUEST_RESPONSE("Object ID is required. Please provide it using the key 'object_id'.")
@@ -85,25 +86,26 @@ class RecognizeImage(APIView):
                 return BAD_REQUEST_RESPONSE("Please upload an image before proceeding.")
 
             # Get user object
+            object_id = int(object_id) if object_id else 0
             user_obj = User.objects.filter(email=email).first()
             if not user_obj:
                 return BAD_REQUEST_RESPONSE("Invalid user email")
             
-            original_image_url = None
             OriginalFileCount = 0
+            original_image_url = None
             if object_id == 0:
                 OriginalFileCount, original_image_url = OriginalImageTrack(user_obj , original_image)
             
             else:
-                # Reuse existing image URL from DB
+                #Reuse existing image URL from DB
                 crop_history_obj = CropImageHistoryModel.objects.filter(id=object_id).first()
                 if not crop_history_obj:
                     return BAD_REQUEST_RESPONSE("Invalid object ID provided")
                 
                 original_image_url = crop_history_obj.orignal_image  # spelling preserved from your model
 
+            # call to function for save crop images
             res = ImageEditingTrack(object_id, user_obj , original_image_url, selectedImageURL)
-
             idx = 0
             
             #Iterate through each uploaded image

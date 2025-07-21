@@ -294,4 +294,3 @@ class DeleteUserHistory(APIView):
             error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
 
-

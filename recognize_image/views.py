@@ -155,13 +155,13 @@ class RecognizeImage(APIView):
 
 # API FOR GET HISTORY 
 class UserImagesHistoryView(APIView):
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
         try:
             # Get email from request
-            email = request.data.get("email")                 # FOR Local
-            #email = request.user.email                          # FOR live
+            #email = request.data.get("email")                 # FOR Local
+            email = request.user.email                          # FOR live
             
             # Get user object
             user_obj = User.objects.filter(email=email).first()

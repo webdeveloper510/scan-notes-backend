@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from recognize_image.views import RecognizeImage , UserFreeTRailStausView , UserImagesHistoryView , EditUserHistory
+from recognize_image.views import *
 
 urlpatterns = [
     path("api/users/", include(("api.routers", "api"), namespace="api")),
@@ -11,7 +11,8 @@ urlpatterns = [
     path("api/free-trial/", UserFreeTRailStausView.as_view()),
     path("api/recognize_image/", RecognizeImage.as_view()),
     path("api/user-history/", UserImagesHistoryView.as_view()),
-    path("api/edit-history/", EditUserHistory.as_view())
+    path("api/edit-history/", EditUserHistory.as_view()),
+    path("api/delete-history/", DeleteUserHistory.as_view())
 ]
 
 if settings.DEBUG == True or settings.DEBUG == False:

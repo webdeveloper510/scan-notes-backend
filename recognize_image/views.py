@@ -155,13 +155,13 @@ class RecognizeImage(APIView):
 
 # API FOR GET HISTORY 
 class UserImagesHistoryView(APIView):
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
         try:
             # Get email from request
-            #email = request.data.get("email")                 # FOR Local
-            email = request.user.email                          # FOR live
+            email = request.data.get("email")                 # FOR Local
+            #email = request.user.email                          # FOR live
             
             # Get user object
             user_obj = User.objects.filter(email=email).first()
@@ -235,3 +235,63 @@ class EditUserHistory(APIView):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
+
+
+# API FOR DELETE HISTORY 
+class DeleteUserHistory(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request, format=None):
+        try:
+            object_id = request.data.get("obj_id", None)
+            object_delete_status = request.data.get("status", False)
+            crop_obj_urls = request.data.get("objects_urls", [])
+
+            if not object_id:
+                return Response({
+                    "message": "Object Id is required. Please provide ids array using the key 'obj_id'."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not crop_obj_urls:
+                return Response({
+                    "message": "crop_obj_urls is required. Please provide it using the key 'objects_urls'."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not isinstance(crop_obj_urls, list):
+                return Response({
+                    "error": "crop_obj_urls must be a list."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            user_history_obj = CropImageHistoryModel.objects.filter(id=object_id).first()
+            if not user_history_obj:
+                return NOT_FOUND_RESPONSE("No Object found with ID: {}".format(object_id))
+
+            # If object_delete_status is True, delete the entire object
+            if object_delete_status:
+                user_history_obj.delete()
+                return Response({
+                    "status": status.HTTP_200_OK,
+                    "message": "Object and all crop images deleted successfully."
+                })
+
+            # If only crop images need to be deleted
+            crop_data_array = user_history_obj.crop_images or []
+            if crop_data_array:
+                import pandas as pd
+
+                df = pd.DataFrame(crop_data_array)
+                df = df[~df['file_url'].isin(crop_obj_urls)]  # Delete matching URLs
+
+                user_history_obj.crop_images = df.to_dict(orient="records")
+                user_history_obj.save()
+
+            json_data = EditUserHistorySerializer(user_history_obj).data
+            return Response({"status": status.HTTP_200_OK, "data": json_data})
+        
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
+            return InternalServer_Response(error_message)
+
+

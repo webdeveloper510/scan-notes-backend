@@ -12,7 +12,8 @@ urlpatterns = [
     path("api/recognize_image/", RecognizeImage.as_view()),
     path("api/user-history/", UserImagesHistoryView.as_view()),
     path("api/edit-history/", EditUserHistory.as_view()),
-    path("api/delete-history/", DeleteUserHistory.as_view())
+    path("api/delete-history/", DeleteUserHistory.as_view()),
+    path("api/title-composer-update/", WriteTitleComposerView.as_view())
 ]
 
 if settings.DEBUG == True or settings.DEBUG == False:

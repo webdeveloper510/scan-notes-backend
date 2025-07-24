@@ -212,3 +212,20 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
 RESET_PASSWORD_TOKEN_EXPIRED = timedelta(minutes=15)
 EMAIL_USE_TLS = True
 #EMAIL_USE_SSL=False
+
+{
+  "Rango": "2025-08-16T15:00:00Z",
+  "end_time": "2025-08-15T17:00:00Z",
+  "start_time": "2025-08-15T15:00:00Z",
+  "old_num_personas": "2",
+  "old_comment": "Window ",
+  "old_time": "02:00:00 PM ",
+  "old_name": "Rahul ",
+  "old_date": "15-08-2025 ",
+  "Day": "15-08-2025",
+  "Name": "Mandeep ",
+  "Hour": "03:00:00 PM",
+  "Comment": "Tested ",
+  "Person": "2",
+  "Intent": "update"
+}

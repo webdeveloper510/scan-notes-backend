@@ -88,15 +88,15 @@ def ImageEditingTrack(object_id, user, original_image_url, FileArray):
                 if new_data:
                     user_history_obj.crop_images = existing_data + new_data
                     user_history_obj.save()
-                return True
+                return user_history_obj.id
 
         # Create new record if object_id is 0 or not found
-        CropImageHistoryModel.objects.create(
+        new_record =CropImageHistoryModel.objects.create(
             user=user,
             orignal_image=original_image_url,
             crop_images=file_data
         )
-        return True
+        return new_record.id
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()

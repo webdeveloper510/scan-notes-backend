@@ -57,7 +57,7 @@ class UserFreeTRailStausView(APIView):
 
 
 class RecognizeImage(APIView):
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     def post(self ,request , format=None):
         sheet_music_data = []
@@ -65,8 +65,8 @@ class RecognizeImage(APIView):
         sheet_wav_data = []
 
         try:
-            #email = request.data.get("email")                         # for local
-            email = request.user.email                                  # for live
+            email = request.data.get("email")                         # for local
+            #email = request.user.email                                  # for live
 
             # GET POST DATA
             object_id = request.data.get("object_id")
@@ -102,7 +102,7 @@ class RecognizeImage(APIView):
                     original_image_url = crop_history_obj.orignal_image  # spelling preserved from your model
 
                 # call to function for save crop images
-                res = ImageEditingTrack(object_id, user_obj , original_image_url, selectedImageURL)
+                Crop_table_object_id = ImageEditingTrack(object_id, user_obj , original_image_url, selectedImageURL)
                 idx = 0
                 
                 #Iterate through each uploaded image
@@ -163,6 +163,7 @@ class RecognizeImage(APIView):
                     return Response({
                         "status"  : status.HTTP_200_OK,
                         "user_file_track": OriginalFileCount,
+                        "object_id": Crop_table_object_id,
                         "data": response_dict
                         
                         })
@@ -319,3 +320,44 @@ class DeleteUserHistory(APIView):
             error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
 
+# API TP UPDATE TITLE AND COMPOSER 
+class WriteTitleComposerView(APIView):
+
+    permission_classes= (IsAuthenticated ,)
+
+    def post(self, request, format=None):
+        try:
+            payload = request.data
+
+            # Handle missing field
+            required_fields = ["object_id", "title", "composer"]
+            missing_fields = [field for field in required_fields if not payload.get(field)]
+            if missing_fields:
+                return BAD_REQUEST_RESPONSE(f'Missing required field(s): {",".join(missing_fields)}')
+
+            # filter out object from database
+            history_obj = CropImageHistoryModel.objects.filter(id=payload.get("object_id")).first()
+            if not history_obj:
+                return NOT_FOUND_RESPONSE(f"Invalid Object ID: {payload.get('object_id')}")
+
+            # save new data in database
+            history_obj.title = payload["title"]
+            history_obj.COMPOSER = payload["composer"]
+            history_obj.save()
+
+            # Serialize updated object
+            serialized_data = EditUserHistorySerializer(history_obj).data
+
+            # Return Response
+            return Response({
+                "message": "success",
+                "status": 200,
+                "data": serialized_data
+            })
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            error_message = (
+                f"Failed to add title and composer. Error: {str(e)} at line {exc_tb.tb_lineno}"
+            )
+            return InternalServer_Response(error_message)

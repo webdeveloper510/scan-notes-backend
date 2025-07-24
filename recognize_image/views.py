@@ -16,11 +16,13 @@ from music21 import converter
 from midi2audio import FluidSynth
 import sys
 from rest_framework.views import APIView
-from .utils import *
+from .thrive import *
 from .response import *
 from api.user.models import *
 from rest_framework.permissions import IsAuthenticated
 from api.user.serializers import EditUserHistorySerializer
+from core.settings import MEDIA_ROOT , BASE_URL
+from .utils import generate_random_string
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
@@ -367,3 +369,33 @@ class WriteTitleComposerView(APIView):
                 f"Failed to add title and composer. Error: {str(e)} at line {exc_tb.tb_lineno}"
             )
             return InternalServer_Response(error_message)
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+
+@csrf_exempt
+def thrivecart_webhook(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid method'}, status=405)
+
+    try:
+        payload = request.json()
+        event = payload.get("event")
+
+        print("event ", event)
+
+        # event = request.POST.get('event')
+        # customer_email = request.POST.get('customer[email]')
+        # product_id = request.POST.get('product[id]')
+
+        # print("Event:", event)
+        # print("Customer Email:", customer_email)
+        # print("Product ID:", product_id)
+
+        # if event == 'order.success':
+        #     # TODO: Save to DB, send email, unlock content, etc.
+        #     print(f" Order received for product {product_id} from {customer_email}")
+
+        # return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

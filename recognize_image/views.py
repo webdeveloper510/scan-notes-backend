@@ -55,9 +55,8 @@ class UserFreeTRailStausView(APIView):
             error_messsage = f'failed to upload image error occur {str(e)} at line {exc_tb.tb_lineno}'
             return InternalServer_Response(error_messsage)
 
-
 class RecognizeImage(APIView):
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self ,request , format=None):
         sheet_music_data = []
@@ -65,8 +64,8 @@ class RecognizeImage(APIView):
         sheet_wav_data = []
 
         try:
-            email = request.data.get("email")                         # for local
-            #email = request.user.email                                  # for live
+            #email = request.data.get("email")                         # for local
+            email = request.user.email                                  # for live
 
             # GET POST DATA
             object_id = request.data.get("object_id")
@@ -198,9 +197,16 @@ class UserImagesHistoryView(APIView):
             if not user_history_obj:
                 return NOT_FOUND_RESPONSE("User  haven't uploaded any cropped images yet.")
             
+            import pandas as pd
+            df = pd.DataFrame(list(user_history_obj))
+            
+            sorted_df = df.sort_values(by=['title', 'COMPOSER'])
+
+            json_output = sorted_df.to_dict(orient="records") if not sorted_df.empty else []
+
             return Response({
                 "status": status.HTTP_200_OK ,
-                "data": list(user_history_obj)
+                "data": json_output
             })
 
         except Exception as e:

@@ -372,7 +372,7 @@ class WriteTitleComposerView(APIView):
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-
+@csrf_exempt
 def thrivecart_webhook(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=405)

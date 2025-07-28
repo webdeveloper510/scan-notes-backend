@@ -34,7 +34,8 @@ def get_customer_details(customer_email, mode):
         exc_type, exc_obj, exc_tb = sys.exc_info()
         error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
         return error_message
-    
+
+#res = get_customer_details()
 
 # import requests
 
@@ -54,19 +55,19 @@ def get_customer_details(customer_email, mode):
 # print(response.text)
 
 
-import requests
+# import requests
 
-url = "https://thrivecart.com/api/external/subscribe"
-headers = {
-    'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
-    "Content-Type": "application/json",
-    "X-TC-Mode": "test"
-}
-payload = {
-    "event": "order_success",
-    "target_url": "https://fichedetravail.com/thrivecart-webhook/",
-    "trigger_fields": {"mode_int": 1}
-}
+# url = "https://thrivecart.com/api/external/subscribe"
+# headers = {
+#     'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
+#     "Content-Type": "application/json",
+#     "X-TC-Mode": "test"
+# }
+# payload = {
+#     "event": "order_success",
+#     "target_url": "https://fichedetravail.com/thrivecart-webhook/",
+#     "trigger_fields": {"mode_int": 1}
+# }
 
-response = requests.post(url, headers=headers, json=payload)
-print(response.status_code, response.text)
+# response = requests.post(url, headers=headers, json=payload)
+# print(response.status_code, response.text)

@@ -32,22 +32,31 @@ class UserFreeTRailStausView(APIView):
 
         try: 
             # Get email from request
-            #email = request.data.get("email")                          # for local                  
+            #email = request.data.get("email")                          # for local    
             email = request.user.email                                  # for live
 
             # Get user object
             user_obj = User.objects.filter(email=email).first()
-
             if not user_obj:
                 return NOT_FOUND_RESPONSE("User not found")
 
             # Get subscription status and file count
             is_paid = user_obj.subscription_status
             file_count = user_obj.file_upload_count or 0  # Handle None safely
+            payment_status =""
+
+            # filter put payment details
+            payment_obj = PaymentDetails.objects.filter(user_id= request.user.id).first()
+
+            if not payment_obj:
+                payment_status = False
+
+            else:
+                payment_status = payment_obj.payment_status
 
             # Check trial limit
             if file_count > 5 and not is_paid:
-                return FREE_TRAIL_EXPIRED_RESPONSE(False ,"Your free trial limit has expired" )
+                return FREE_TRAIL_EXPIRED_RESPONSE(False , payment_status,"Your free trial limit has expired" )
             
             # if free trial is pending
             return TRAIL_PENDING(True ,  "Trial access is valid")

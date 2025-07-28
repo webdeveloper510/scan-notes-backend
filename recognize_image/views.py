@@ -378,24 +378,74 @@ class ThriveCartWebhookView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-         
+            
             import json
             data = json.loads(request.body)
+            # Top-level fields
+            event = data.get('event')  # 'order.success'
+            thrivecart_account = data.get('thrivecart_account')
+            thrivecart_secret = data.get('thrivecart_secret')
+            base_product = data.get('base_product')
+            order_id = data.get('order_id')
+            currency = data.get('currency')
 
-            # Example: Access payment info
-            customer_name = data.get("customer", {}).get("name")
-            customer_email = data.get("customer", {}).get("email")
-            payment_status = data.get("payment_status")
-            transaction_id = data.get("transaction_id")
-            product_name = data.get("product", {}).get("name")
+            # Customer info
+            customer_id = data.get('customer_id')
+            customer_identifier = data.get('customer_identifier')
+            customer = data.get('customer', {})
+            email = customer.get('email')
+            address = customer.get('address', {})
 
-            print({
-                "customer_name": customer_name,
-                "customer_email": customer_email,
-                "payment_status": payment_status,
-                "transaction_id": transaction_id,
-                "product_name": product_name,
-            })
+            # Order/payment info
+            order = data.get('order', {})
+            total = order.get('total')
+            processor = order.get('processor')
+            charges = order.get('charges', [])
+            future_charges = order.get('future_charges', [])
+
+            # Purchase info
+            purchases = data.get('purchases', [])
+            purchase_map = data.get('purchase_map', [])
+            purchase_map_flat = data.get('purchase_map_flat')
+
+            # Fulfillment info
+            fulfillment = data.get('fulfillment', {})
+            confirmation_url = fulfillment.get('url')
+
+            print("🔔 ThriveCart Webhook Received")
+
+            # Top-level fields
+            print("Event:", event)
+            print("ThriveCart Account:", thrivecart_account)
+            print("ThriveCart Secret:", thrivecart_secret)
+            print("Base Product ID:", base_product)
+            print("Order ID:", order_id)
+            print("Currency:", currency)
+
+            # Customer info
+            print("Customer ID:", customer_id)
+            print("Customer Identifier:", customer_identifier)
+            print("Customer Email:", email)
+            print("Customer Address:", address)
+
+            # Order/payment info
+            print("Total Amount:", total)
+            print("Payment Processor:", processor)
+            print("Charges:")
+            for charge in charges:
+                print("  -", charge)
+
+            print("Future Charges:")
+            for future in future_charges:
+                print("  -", future)
+
+            # Purchase info
+            print("Purchases:", purchases)
+            print("Purchase Map:", purchase_map)
+            print("Purchase Map Flat:", purchase_map_flat)
+
+            # Fulfillment info
+            print("Confirmation URL:", confirmation_url)
 
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)

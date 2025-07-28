@@ -46,7 +46,7 @@ class UserFreeTRailStausView(APIView):
             payment_status =""
 
             # filter put payment details
-            payment_obj = PaymentDetails.objects.filter(user_id= request.user.id).first()
+            payment_obj = PaymentDetails.objects.filter(user_id= user_obj.id).first()
 
             if not payment_obj:
                 payment_status = False
@@ -382,8 +382,6 @@ class WriteTitleComposerView(APIView):
 
 # API FOR Thrive cart webhook payment
 class ThriveCartWebhookView(APIView):
-    permission_classes = (IsAuthenticated,)
-
     def post(self, request, *args, **kwargs):
         try:
             # Log raw data
@@ -408,10 +406,13 @@ class ThriveCartWebhookView(APIView):
             payment_due =  order.get("future_charges")[0]['due']
             plan_type = order.get("charges")[0]['payment_plan_name']
             
+
+            user_obj = User.objects.filter(email = customer_email).first()
+            if not user_obj:
+                return NOT_FOUND_RESPONSE("No user found with email : {}".format(customer_email))
+            
             # Assume you're using a fixed user ID for testing
-            #user_id = 21
-            user_id = request.user.id
-            existing = PaymentDetails.objects.filter(user_id=user_id, payment_status="order.success").first()
+            existing = PaymentDetails.objects.filter(id=user_obj.id, payment_status="order.success").first()
 
             if existing:
                 return Response({
@@ -421,7 +422,7 @@ class ThriveCartWebhookView(APIView):
 
             # Create or update payment record
             payment_obj, created = PaymentDetails.objects.update_or_create(
-                user_id=user_id,
+                user_id=user_obj.id,
                 defaults={
                     'customer_id': customer_id,
                     'customer_name': customer_name,
@@ -448,5 +449,3 @@ class ThriveCartWebhookView(APIView):
             error_message = f"Failed to create payment object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
         
-
-

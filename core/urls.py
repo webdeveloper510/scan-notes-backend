@@ -15,7 +15,7 @@ urlpatterns = [
     path("api/delete-history/", DeleteUserHistory.as_view()),
     path("api/title-composer-update/", WriteTitleComposerView.as_view()),
     #path("api/thrivecart-webhook/", views.thrivecart_webhook, name="thrivecart_webhook"),
-    path('api/thrivecart/webhook/', thrivecart_webhook)
+    path('thrivecart/webhook/', thrivecart_webhook)
 
 
 

@@ -25,13 +25,10 @@ class GetProfileView(views.APIView):
 # API for Send password Reset Request
 class PasswordResetRequestView(views.APIView):
 
-    permission_classes = (IsAuthenticated,)
-
     def post(self, request, format=None):
         try:
 
-            #email  = request.data.get("email")
-            email  = request.user.email
+            email  = request.data.get("email")
             print("email ",email)
 
 

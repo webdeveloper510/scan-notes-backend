@@ -146,4 +146,8 @@ service_account.json
 
 
 # IGNORE ENV file
-env
+envusers/migrations/
+
+# Ignore migrations
+api/user/migrations/
+api/authentication/migrations

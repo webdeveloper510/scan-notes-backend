@@ -371,37 +371,73 @@ class WriteTitleComposerView(APIView):
             return InternalServer_Response(error_message)
 
 
-
+# API FOR Thrive cart webhook payment
 class ThriveCartWebhookView(APIView):
-    authentication_classes = []  # No authentication
-    permission_classes = []      # Allow all
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         try:
             # Log raw data
             data = request.data
-
-            # Process the data as needed
-            event_type = data.get('event')  # e.g., 'transaction.sale'
+            event_type = data.get('event')
             customer = data.get('customer')
-            product = data.get('product')
             currency = data.get('currency', {})
-            order_id = data.get('order_id', {})
             order = data.get('order', {})
 
+            # Process the data as needed
+            customer_id =customer.get("id")
+            customer_email = customer.get("email")
+            customer_name =customer.get("name")
+            customer_address =customer.get("address")
+            order_id = order.get("id")
+            invoice_id = order.get("invoice_id")
+            processor = order.get("processor")
+            order_id = order.get("id")
+            date= order.get("date")
+            product_id = order.get("charges")[0]['item_identifier']
+            amount =  order.get("charges")[0]['amount']
+            payment_due =  order.get("future_charges")[0]['due']
+            plan_type = order.get("charges")[0]['payment_plan_name']
             
+            # Assume you're using a fixed user ID for testing
+            #user_id = 21
+            user_id = request.user.id
+            existing = PaymentDetails.objects.filter(user_id=user_id, payment_status="order.success").first()
 
-            print({
-                "event_type": event_type,
-                "customer": customer,
-                "currency": currency,
-                "product": product,
-                "order_id": order_id,
-                "order": order,
-            })
+            if existing:
+                return Response({
+                    "message": "User already has an active subscription",
+                    "status": status.HTTP_200_OK
+                })
 
+            # Create or update payment record
+            payment_obj, created = PaymentDetails.objects.update_or_create(
+                user_id=user_id,
+                defaults={
+                    'customer_id': customer_id,
+                    'customer_name': customer_name,
+                    'email': customer_email,
+                    'customer_address': customer_address,
+                    'order_id': order_id,
+                    'invoice_id': invoice_id,
+                    'processor': processor,
+                    'date': date,
+                    'product_id': product_id,
+                    'payment_due': payment_due,
+                    'amount': amount,   
+                    'currency': currency,
+                    'plan_type': plan_type,
+                    'payment_status': event_type  
+                }
+            )
 
-            return Response({"status": "success"}, status=status.HTTP_200_OK)
+            response_data = {"user_id": payment_obj.user.id,"payment_status": payment_obj.payment_status}
+            return Response({"message": "Payment details saved", "status": status.HTTP_200_OK,"detail": response_data})
 
         except Exception as e:
-            return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            error_message = f"Failed to create payment object, error: {str(e)} at line {exc_tb.tb_lineno}"
+            return InternalServer_Response(error_message)
+        
+
+

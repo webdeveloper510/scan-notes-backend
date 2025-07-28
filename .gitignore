@@ -149,5 +149,5 @@ service_account.json
 envusers/migrations/
 
 # Ignore migrations
-api/user/migrations/
-api/authentication/migrations
+api/user/__pycache__/
+api/authentication/__pycache__

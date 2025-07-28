@@ -370,31 +370,27 @@ class WriteTitleComposerView(APIView):
             )
             return InternalServer_Response(error_message)
 
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-@csrf_exempt
-def thrivecart_webhook(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Invalid method'}, status=405)
 
-    try:
-        payload = request.json()
-        event = payload.get("event")
 
-        print("event ", event)
+class ThriveCartWebhookView(APIView):
+    authentication_classes = []  # No authentication
+    permission_classes = []      # Allow all
 
-        # event = request.POST.get('event')
-        # customer_email = request.POST.get('customer[email]')
-        # product_id = request.POST.get('product[id]')
+    def post(self, request, *args, **kwargs):
+        try:
+            # Log raw data
+            data = request.data
 
-        # print("Event:", event)
-        # print("Customer Email:", customer_email)
-        # print("Product ID:", product_id)
+            # Process the data as needed
+            event_type = data.get('event')  # e.g., 'transaction.sale'
+            customer = data.get('customer')
+            product = data.get('product')
+            
+            print("event type ", event_type)
+            print("customer" , customer)
+            print("product ", product)
 
-        # if event == 'order.success':
-        #     # TODO: Save to DB, send email, unlock content, etc.
-        #     print(f" Order received for product {product_id} from {customer_email}")
+            return Response({"status": "success"}, status=status.HTTP_200_OK)
 
-        # return JsonResponse({'status': 'ok'})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)

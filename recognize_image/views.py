@@ -385,19 +385,19 @@ class ThriveCartWebhookView(APIView):
             event_type = data.get('event')  # e.g., 'transaction.sale'
             customer = data.get('customer')
             product = data.get('product')
-            payment = data.get('payment', {})
-            transaction = data.get('transaction', {})
-            charges = data.get('charges', {})
+            currency = data.get('currency', {})
+            order_id = data.get('order_id', {})
+            order = data.get('order', {})
 
             
 
             print({
                 "event_type": event_type,
                 "customer": customer,
-                "payment": payment,
+                "currency": currency,
                 "product": product,
-                "transaction": transaction,
-                "charges": charges,
+                "order_id": order_id,
+                "order": order,
             })
 
 

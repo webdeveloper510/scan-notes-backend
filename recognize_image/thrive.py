@@ -52,3 +52,21 @@ def get_customer_details(customer_email, mode):
 # response = requests.request("POST", url, headers=headers, data=payload)
 
 # print(response.text)
+
+
+import requests
+
+url = "https://thrivecart.com/api/external/subscribe"
+headers = {
+    'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
+    "Content-Type": "application/json",
+    "X-TC-Mode": "test"
+}
+payload = {
+    "event": "order_success",
+    "target_url": "https://fichedetravail.com/thrivecart-webhook/",
+    "trigger_fields": {"mode_int": 1}
+}
+
+response = requests.post(url, headers=headers, json=payload)
+print(response.status_code, response.text)

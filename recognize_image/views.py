@@ -22,7 +22,7 @@ from api.user.models import *
 from rest_framework.permissions import IsAuthenticated
 from api.user.serializers import EditUserHistorySerializer
 from core.settings import MEDIA_ROOT , BASE_URL
-from .utils import generate_random_string
+from .utils import generate_random_string ,OriginalImageTrack ,ImageEditingTrack
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
@@ -373,7 +373,6 @@ class WriteTitleComposerView(APIView):
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 
-@csrf_exempt
 def thrivecart_webhook(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Invalid method'}, status=405)

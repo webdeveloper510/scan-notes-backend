@@ -378,17 +378,25 @@ class ThriveCartWebhookView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            # Log raw data
-            data = request.data
+         
+            import json
+            data = json.loads(request.body)
 
-            # Process the data as needed
-            event_type = data.get('event')  # e.g., 'transaction.sale'
-            customer = data.get('customer')
-            product = data.get('product')
-            
-            print("event type ", event_type)
-            print("customer" , customer)
-            print("product ", product)
+            # Example: Access payment info
+            customer_name = data.get("customer", {}).get("name")
+            customer_email = data.get("customer", {}).get("email")
+            payment_status = data.get("payment_status")
+            transaction_id = data.get("transaction_id")
+            product_name = data.get("product", {}).get("name")
+
+            print({
+                "customer_name": customer_name,
+                "customer_email": customer_email,
+                "payment_status": payment_status,
+                "transaction_id": transaction_id,
+                "product_name": product_name,
+            })
+
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)
 

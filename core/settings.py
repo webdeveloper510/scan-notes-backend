@@ -14,6 +14,8 @@ import os
 import environ
 from pathlib import Path
 from datetime import timedelta , datetime
+from dotenv import load_dotenv
+load_dotenv()
 
 HOST ="live"
 

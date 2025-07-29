@@ -55,11 +55,13 @@ class UserFreeTRailStausView(APIView):
                 payment_status = payment_obj.payment_status
 
             # Check trial limit
-            if file_count > 5 and not is_paid:
-                return FREE_TRAIL_EXPIRED_RESPONSE(False , payment_status,"Your free trial limit has expired" )
+            if file_count >=5 and not is_paid:
+                message = "You have active subscription " if payment_status == "order.success" else "Your free trial limit has expired"
+                return FREE_TRAIL_EXPIRED_RESPONSE(False , payment_status,message)
             
             # if free trial is pending
-            return TRAIL_PENDING(True ,  "Trial access is valid")
+            message = "You have active subscription " if payment_status == "order.success" else  "Trial access is valid"
+            return TRAIL_PENDING(True ,payment_status ,  message)
 
         except Exception as e:
             exc_type , exc_obj , exc_tb = sys.exc_info()

@@ -36,31 +36,32 @@ def get_customer_details(customer_email, mode):
         return error_message
 
 #res = get_customer_details()
-def cancel_subscription(order_id , subscription_id):
+def cancel_subscription(order_id , subscription_id , mode):
     try:
         url = "https://thrivecart.com/api/external/cancelSubscription"
 
         headers = {
-        'X-TC-Mode': 'test'
+        'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
+        'Content-Type': 'application/json',
+        'X-TC-Mode': mode
         }
 
         payload = {"order_id": order_id, "subscription_id": subscription_id}
-        response = requests.request("POST", url, headers=headers, data=payload)
-
-        print(response.text)
+        response = requests.request("POST", url, headers=headers, json=payload)
+        return response.json()
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         error_message = f"Failed to cancel subscription of thrivecart payment, error: {str(e)} at line {exc_tb.tb_lineno}"
         return error_message
     
-def get_subscription_id(email):
+def get_subscription_id(email , mode):
     try:
         url = "https://thrivecart.com/api/external/customer"
         headers = {
             'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
             'Content-Type': 'application/json',
-            'X-TC-Mode': 'test'  # or 'test' for test mode
+            'X-TC-Mode': mode  
         }
 
         payload = {"email": email.strip()}
@@ -75,3 +76,6 @@ def get_subscription_id(email):
         error_message = f"Failed to fetch ThriveCart data: {str(e)} at line {exc_tb.tb_lineno}"
         return error_message
     
+
+
+

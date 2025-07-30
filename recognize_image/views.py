@@ -21,7 +21,7 @@ from .response import *
 from api.user.models import *
 from rest_framework.permissions import IsAuthenticated
 from api.user.serializers import EditUserHistorySerializer
-from core.settings import MEDIA_ROOT , BASE_URL
+from core.settings import MEDIA_ROOT , BASE_URL, HOST
 from .utils import generate_random_string ,OriginalImageTrack ,ImageEditingTrack
 
 # API FOR CHECK STATUS
@@ -386,80 +386,89 @@ class WriteTitleComposerView(APIView):
 class ThriveCartWebhookView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            # Log raw data
+            # Get data
             data = request.data
             event_type = data.get('event')
-            customer = data.get('customer')
+            customer = data.get('customer', {})
             currency = data.get('currency', {})
             order = data.get('order', {})
-            
 
-            print("event type ", event_type)
-            print()
-            print("customer ", customer) 
-            print()
-            print("currency ", currency)
-            print()
-            print("order ", order)
-            print()
-            # Process the data as needed
-            customer_id =customer.get("id")
-            customer_email = customer.get("email")
-            customer_name =customer.get("name")
-            customer_address =customer.get("address")
-            order_id = order.get("id")
+            thrive_customer_email = customer.get("email")
+            subscription_id = ""
+            subscription_status = ""
+
+            # Get subscription details
+            response = get_subscription_id(thrive_customer_email)
+            if response and "subscriptions" in response:
+                subscription_data = response.get("subscriptions")
+                subscription_id = subscription_data[0]['subscription_id']
+                subscription_status = subscription_data[0]['status']
+            else:
+                subscription_id = 0
+                subscription_status = "cancelled"
+
+            thrivecustomer_id = customer.get("id")
+            thrive_customer_name = customer.get("name")
+            thrive_customer_address = customer.get("address")
+
+            order_id = order.get('id')
             invoice_id = order.get("invoice_id")
+            frequency = order.get("future_charges", [{}])[0].get('frequency')
+            amount = order.get("charges", [{}])[0].get('amount')
+            start_date = order.get("date")
+            payment_due = order.get("future_charges", [{}])[0].get('due')
             processor = order.get("processor")
-            order_id = order.get("id")
-            date= order.get("date")
-            product_id = order.get("charges")[0]['item_identifier']
-            amount =  order.get("charges")[0]['amount']
-            payment_due =  order.get("future_charges")[0]['due']
-            plan_type = order.get("charges")[0]['payment_plan_name']
+            product_name = order.get("charges", [{}])[0].get("name")
+            product_id = order.get("charges", [{}])[0].get('item_identifier')
+            mode = 'test'  # change to 'live' if HOST is production
 
-            
-
-            user_obj = User.objects.filter(email = customer_email).first()
+            user_obj = User.objects.filter(email=thrive_customer_email).first()
             if not user_obj:
-                return NOT_FOUND_RESPONSE("No user found with email : {}".format(customer_email))
-            
-            # Assume you're using a fixed user ID for testing
-            existing = PaymentDetails.objects.filter(id=user_obj.id, payment_status="order.success").first()
+                return NOT_FOUND_RESPONSE(f"No user found with email: {thrive_customer_email}")
 
-            if existing:
-                return Response({
-                    "message": "User already has an active subscription",
-                    "status": status.HTTP_200_OK
-                })
-
-            # Create or update payment record
+            # Create or update PaymentDetails object
             payment_obj, created = PaymentDetails.objects.update_or_create(
                 user_id=user_obj.id,
                 defaults={
-                    'customer_id': customer_id,
-                    'customer_name': customer_name,
-                    'email': customer_email,
-                    'customer_address': customer_address,
+                    "subscription_status": subscription_status,
                     'order_id': order_id,
                     'invoice_id': invoice_id,
-                    'processor': processor,
-                    'date': date,
-                    'product_id': product_id,
-                    'payment_due': payment_due,
-                    'amount': amount,   
+                    "subscription_id": subscription_id,
                     'currency': currency,
-                    'plan_type': plan_type,
-                    'payment_status': event_type  
+                    'frequency': frequency,
+                    'amount': amount,
+                    "start_date": start_date,
+                    'end_date': payment_due,
+                    'thrivecustomer_id': thrivecustomer_id,
+                    'thrive_customer_name': thrive_customer_name,
+                    'thrive_customer_email': thrive_customer_email,
+                    'thrive_customer_address': thrive_customer_address,
+                    'processor': processor,
+                    'product_name': product_name,
+                    'product_id': product_id,
+                    'event_type': event_type
                 }
             )
 
-            response_data = {"user_id": payment_obj.user.id,"payment_status": payment_obj.payment_status}
-            return Response({"message": "Payment details saved", "status": status.HTTP_200_OK,"detail": response_data})
+            row_status = "created" if created else "updated"
+
+            response_data = {
+                "user_id": payment_obj.user.id,
+                "payment_status": payment_obj.event_type,
+                "row_status": row_status
+            }
+
+            return Response({
+                "message": "Payment details saved",
+                "status": status.HTTP_200_OK,
+                "detail": response_data
+            })
 
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             error_message = f"Failed to create payment object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
+
         
 
 # API FOR GET PAYMENT DATA
@@ -480,13 +489,21 @@ class PaymentDetailView(APIView):
 
             import pandas as pd
             df = pd.DataFrame(list(payment_obj))
+   
 
-            filtered_columns = ["customer_name", "email", "invoice_id", "date", "payment_due", "amount" ,"currency", "plan_type", "payment_status"]
+
+            rename_columns= {
+                "thrive_customer_name": "customer_name",
+                "thrive_customer_email": "email",
+                "frequency": "plan_type",
+                "event_type": "payment_status", 
+            }
+
+            df.rename(columns=rename_columns, inplace=True)
+
+            filtered_columns = ["customer_name", "email", "invoice_id", "start_date", "end_date", "amount" ,"currency", "plan_type", "payment_status", "subscription_status"]
 
             filtered_df = df[filtered_columns]
-
-            # rename column
-            filtered_df.rename(columns={'date': 'start_date'}, inplace=True)
 
             filtered_df["amount"] =filtered_df["amount"].apply(lambda x: f"€{x}")
             
@@ -504,3 +521,61 @@ class PaymentDetailView(APIView):
             return InternalServer_Response(error_messsage)
         
 
+# API FOR CANCEL SUBSCRIPTION
+class CancelSubscriptionView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            email = request.user.email
+            #email = request.data.get("email")
+            
+            # filter out payment data 
+            paymnet_obj = PaymentDetails.objects.filter(thrive_customer_email=email).first()
+
+            if not paymnet_obj:
+                return Response({
+                    "success": False,
+                    "message": f"No Subscription found related to email: {email}"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            subscription_status = paymnet_obj.subscription_status
+            subscription_id = paymnet_obj.subscription_id
+            order_id = paymnet_obj.order_id
+            mode = paymnet_obj.mode
+
+            if subscription_status == "active" and subscription_id not in [0 , "0", "None"]:
+                cancel_response = cancel_subscription(order_id, subscription_id, mode)
+                print("cancel_response ", cancel_response)
+                
+                if 'error' in cancel_response:
+                    return Response({
+                        "status":status.HTTP_400_BAD_REQUEST,
+                        "success": False,
+                        "message": cancel_response['error']
+                    })
+
+                # Optionally check cancel_response success here
+                else:
+                    paymnet_obj.subscription_status = "cancelled"
+                    paymnet_obj.save()
+                    return Response({
+                        "success": True,
+                        "message": cancel_response.get("message", "Subscription cancelled successfully."),
+                        "subscription_status": paymnet_obj.subscription_status
+                    }, status=status.HTTP_200_OK)
+
+            else:
+                return Response({
+                    "success": False,
+                    "message": f"Subscription is already {subscription_status}.",
+                    "subscription_status": subscription_status
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            error_message = f"Failed to cancel subscription: {str(e)} at line {exc_tb.tb_lineno}"
+            return Response({
+                "success": False,
+                "message": error_message
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

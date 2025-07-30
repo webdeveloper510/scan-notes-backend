@@ -126,22 +126,25 @@ class CropImageHistoryModel(models.Model):
     COMPOSER =  models.CharField(max_length=500 , null=True , blank=True)
 
 
-
+# Model to save payment details
 class PaymentDetails(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    customer_id = models.CharField(max_length=500, blank=True , null=True)
-    customer_name = models.CharField(max_length=500, blank=True , null=True)
-    email = models.CharField(max_length=500, blank=True , null=True)
-    customer_address = models.JSONField()
+    subscription_status = models.CharField(max_length=255 , blank=True , null=True)
     order_id = models.CharField(max_length=500, blank=True , null=True)
     invoice_id = models.CharField(max_length=500, blank=True , null=True)
-    processor = models.CharField(max_length=500, blank=True , null=True)
-    date = models.CharField(max_length=500, blank=True , null=True)
-    product_id = models.CharField(max_length=255 , blank=True , null=True)
-    payment_due = models.CharField(max_length=255 , blank=True , null=True)
-    amount =  models.CharField(max_length=255 , blank=True , null=True)
+    subscription_id = models.CharField(max_length=500, blank=True , null=True)
     currency= models.CharField(max_length=255 , blank=True , null=True)
-    plan_type = models.CharField(max_length=255 , blank=True , null=True)
-    payment_status = models.CharField(max_length=255 , blank=True , null=True)
-
-
+    frequency = models.CharField(max_length=255 , blank=True , null=True)
+    amount = models.CharField(max_length=255 , blank=True , null=True)
+    start_date = models.CharField(max_length=500, blank=True , null=True)
+    end_date = models.CharField(max_length=500, blank=True , null=True)
+    thrivecustomer_id = models.CharField(max_length=500, blank=True , null=True)
+    thrive_customer_name = models.CharField(max_length=500, blank=True , null=True)
+    thrive_customer_email = models.CharField(max_length=500, blank=True , null=True)
+    thrive_customer_address = models.JSONField()
+    processor = models.CharField(max_length=500, blank=True , null=True)
+    product_name = models.CharField(max_length=255 , blank=True , null=True)
+    product_id = models.CharField(max_length=255 , blank=True , null=True)
+    event_type = models.CharField(max_length=255 , blank=True , null=True)
+    auth_user = models.CharField(max_length=500, blank=True , null=True)
+    mode = models.CharField(max_length=500, blank=True , null=True)

@@ -382,13 +382,13 @@ class WriteTitleComposerView(APIView):
             return InternalServer_Response(error_message)
 
 
+
 # API FOR Thrive cart webhook payment
 class ThriveCartWebhookView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             # Get data
             data = request.data
-            print(data)
             event_type = data.get('event')
             customer = data.get('customer', {})
             currency = data.get('currency', {})
@@ -397,6 +397,8 @@ class ThriveCartWebhookView(APIView):
             thrive_customer_email = customer.get("email")
             subscription_id = ""
             subscription_status = ""
+
+            mode = data.get('mode')                 # change to 'live' if HOST is production
 
             # Get subscription details
             response = get_subscription_id(thrive_customer_email)
@@ -421,7 +423,6 @@ class ThriveCartWebhookView(APIView):
             processor = order.get("processor")
             product_name = order.get("charges", [{}])[0].get("name")
             product_id = order.get("charges", [{}])[0].get('item_identifier')
-            mode = 'test'  # change to 'live' if HOST is production
 
             user_obj = User.objects.filter(email=thrive_customer_email).first()
             if not user_obj:
@@ -447,7 +448,8 @@ class ThriveCartWebhookView(APIView):
                     'processor': processor,
                     'product_name': product_name,
                     'product_id': product_id,
-                    'event_type': event_type
+                    'event_type': event_type,
+                    "mode": mode
                 }
             )
 

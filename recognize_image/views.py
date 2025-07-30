@@ -396,11 +396,11 @@ class ThriveCartWebhookView(APIView):
 
             print("event type ", event_type)
             print()
-            print("event type ", event_type) 
+            print("customer ", customer) 
             print()
-            print("event type ", event_type)
+            print("currency ", currency)
             print()
-            print("event type ", event_type)
+            print("order ", order)
             print()
             # Process the data as needed
             customer_id =customer.get("id")

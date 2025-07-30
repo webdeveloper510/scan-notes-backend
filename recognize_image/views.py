@@ -52,7 +52,7 @@ class UserFreeTRailStausView(APIView):
                 payment_status = False
 
             else:
-                payment_status = payment_obj.payment_status
+                payment_status = payment_obj.event_type
 
             # Check trial limit
             if file_count >=5 and not is_paid:
@@ -410,8 +410,8 @@ class ThriveCartWebhookView(APIView):
                 subscription_id = 0
                 subscription_status = "cancelled"
 
-            # print('subscription_id ', subscription_id)
-            # print('subscription_status ', subscription_status)
+            print('subscription_id ', subscription_id)
+            print('subscription_status ', subscription_status)
 
 
             thrivecustomer_id = customer.get("id")

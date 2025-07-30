@@ -388,6 +388,7 @@ class ThriveCartWebhookView(APIView):
         try:
             # Get data
             data = request.data
+            print(data)
             event_type = data.get('event')
             customer = data.get('customer', {})
             currency = data.get('currency', {})
@@ -469,7 +470,6 @@ class ThriveCartWebhookView(APIView):
             error_message = f"Failed to create payment object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
 
-        
 
 # API FOR GET PAYMENT DATA
 class PaymentDetailView(APIView):
@@ -519,7 +519,7 @@ class PaymentDetailView(APIView):
             exc_type , exc_obj , exc_tb = sys.exc_info()
             error_messsage = f'failed to get payment detail data,  {str(e)} at line {exc_tb.tb_lineno}'
             return InternalServer_Response(error_messsage)
-        
+
 
 # API FOR CANCEL SUBSCRIPTION
 class CancelSubscriptionView(APIView):

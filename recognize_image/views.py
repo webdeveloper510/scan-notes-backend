@@ -392,7 +392,16 @@ class ThriveCartWebhookView(APIView):
             customer = data.get('customer')
             currency = data.get('currency', {})
             order = data.get('order', {})
+            
 
+            print("event type ", event_type)
+            print()
+            print("event type ", event_type) 
+            print()
+            print("event type ", event_type)
+            print()
+            print("event type ", event_type)
+            print()
             # Process the data as needed
             customer_id =customer.get("id")
             customer_email = customer.get("email")
@@ -493,3 +502,5 @@ class PaymentDetailView(APIView):
             exc_type , exc_obj , exc_tb = sys.exc_info()
             error_messsage = f'failed to get payment detail data,  {str(e)} at line {exc_tb.tb_lineno}'
             return InternalServer_Response(error_messsage)
+        
+

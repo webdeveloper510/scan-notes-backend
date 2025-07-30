@@ -126,6 +126,7 @@ class CropImageHistoryModel(models.Model):
     COMPOSER =  models.CharField(max_length=500 , null=True , blank=True)
 
 
+
 class PaymentDetails(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     customer_id = models.CharField(max_length=500, blank=True , null=True)
@@ -142,6 +143,5 @@ class PaymentDetails(models.Model):
     currency= models.CharField(max_length=255 , blank=True , null=True)
     plan_type = models.CharField(max_length=255 , blank=True , null=True)
     payment_status = models.CharField(max_length=255 , blank=True , null=True)
-    auth_user = models.CharField(max_length=500, blank=True , null=True)
 
 

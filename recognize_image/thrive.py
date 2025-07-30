@@ -32,42 +32,46 @@ def get_customer_details(customer_email, mode):
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
-        error_message = f"Failed to update object, error: {str(e)} at line {exc_tb.tb_lineno}"
+        error_message = f"Failed to get thrivecart customer, error: {str(e)} at line {exc_tb.tb_lineno}"
         return error_message
 
 #res = get_customer_details()
+def cancel_subscription(order_id , subscription_id):
+    try:
+        url = "https://thrivecart.com/api/external/cancelSubscription"
 
-# import requests
+        headers = {
+        'X-TC-Mode': 'test'
+        }
 
-# url = "https://thrivecart.com/api/external/subscribe"
+        payload = {"order_id": order_id, "subscription_id": subscription_id}
+        response = requests.request("POST", url, headers=headers, data=payload)
 
-# payload = {"event":"order_refund", 
-#            "target_url": "https://fichedetravail.com/api/thrivecart-webhook/",
-#            "trigger_fields": {"mode_int": 1}}
-# headers = {
-#     'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
-#     'Content-Type': 'application/json',
-#     'X-TC-Mode': 'test'
-# }
+        print(response.text)
 
-# response = requests.request("POST", url, headers=headers, data=payload)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        error_message = f"Failed to cancel subscription of thrivecart payment, error: {str(e)} at line {exc_tb.tb_lineno}"
+        return error_message
+    
+def get_subscription_id(email):
+    try:
+        url = "https://thrivecart.com/api/external/customer"
+        headers = {
+            'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
+            'Content-Type': 'application/json',
+            'X-TC-Mode': 'test'  # or 'test' for test mode
+        }
 
-# print(response.text)
+        payload = {"email": email.strip()}
+        print(f"Sending payload: {payload}")
 
+        response = requests.post(url, headers=headers, json=payload)
 
-# import requests
+        return response.json()
 
-# url = "https://thrivecart.com/api/external/subscribe"
-# headers = {
-#     'Authorization': f'Bearer {os.getenv("THRIVE_API_KEY")}',
-#     "Content-Type": "application/json",
-#     "X-TC-Mode": "test"
-# }
-# payload = {
-#     "event": "order_success",
-#     "target_url": "https://fichedetravail.com/thrivecart-webhook/",
-#     "trigger_fields": {"mode_int": 1}
-# }
-
-# response = requests.post(url, headers=headers, json=payload)
-# print(response.status_code, response.text)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        error_message = f"Failed to fetch ThriveCart data: {str(e)} at line {exc_tb.tb_lineno}"
+        return error_message
+    

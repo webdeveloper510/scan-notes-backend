@@ -402,6 +402,9 @@ class ThriveCartWebhookView(APIView):
 
             # Get subscription details
             response = get_subscription_id(thrive_customer_email, mode)
+
+            print(response)
+            print()
             if response and "subscriptions" in response:
                 subscription_data = response.get("subscriptions")
                 subscription_id = subscription_data[0]['subscription_id']

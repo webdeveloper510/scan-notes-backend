@@ -26,14 +26,14 @@ from .utils import generate_random_string ,OriginalImageTrack ,ImageEditingTrack
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
 
         try: 
             # Get email from request
-            email = request.data.get("email")                          # for local    
-            #email = request.user.email                                  # for live
+            #email = request.data.get("email")                          # for local    
+            email = request.user.email                                  # for live
 
             # Get user object
             user_obj = User.objects.filter(email=email).first()
@@ -401,7 +401,7 @@ class ThriveCartWebhookView(APIView):
             mode = data.get('mode')                 # change to 'live' if HOST is production
 
             # Get subscription details
-            response = get_subscription_id(thrive_customer_email)
+            response = get_subscription_id(thrive_customer_email, mode)
             if response and "subscriptions" in response:
                 subscription_data = response.get("subscriptions")
                 subscription_id = subscription_data[0]['subscription_id']
@@ -409,6 +409,10 @@ class ThriveCartWebhookView(APIView):
             else:
                 subscription_id = 0
                 subscription_status = "cancelled"
+
+            # print('subscription_id ', subscription_id)
+            # print('subscription_status ', subscription_status)
+
 
             thrivecustomer_id = customer.get("id")
             thrive_customer_name = customer.get("name")

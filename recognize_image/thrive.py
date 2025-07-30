@@ -77,5 +77,6 @@ def get_subscription_id(email , mode):
         return error_message
     
 
-
+response = get_subscription_id('mandeepsharma@codenomad.net', "test")
+print("response ", response)
 

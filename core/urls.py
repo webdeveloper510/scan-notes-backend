@@ -14,6 +14,7 @@ urlpatterns = [
     path("api/edit-history/", EditUserHistory.as_view()),
     path("api/delete-history/", DeleteUserHistory.as_view()),
     path("api/title-composer-update/", WriteTitleComposerView.as_view()),
+    path('api/payment-detail/', PaymentDetailView.as_view()),
     #path("api/thrivecart-webhook/", views.thrivecart_webhook, name="thrivecart_webhook"),
     path('webhook/thrivecart/', ThriveCartWebhookView.as_view(), name='thrivecart-webhook'),
 

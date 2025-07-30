@@ -26,14 +26,14 @@ from .utils import generate_random_string ,OriginalImageTrack ,ImageEditingTrack
 
 # API FOR CHECK STATUS
 class UserFreeTRailStausView(APIView):
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
 
         try: 
             # Get email from request
-            #email = request.data.get("email")                          # for local    
-            email = request.user.email                                  # for live
+            email = request.data.get("email")                          # for local    
+            #email = request.user.email                                  # for live
 
             # Get user object
             user_obj = User.objects.filter(email=email).first()
@@ -407,6 +407,7 @@ class ThriveCartWebhookView(APIView):
             amount =  order.get("charges")[0]['amount']
             payment_due =  order.get("future_charges")[0]['due']
             plan_type = order.get("charges")[0]['payment_plan_name']
+
             
 
             user_obj = User.objects.filter(email = customer_email).first()
@@ -451,3 +452,44 @@ class ThriveCartWebhookView(APIView):
             error_message = f"Failed to create payment object, error: {str(e)} at line {exc_tb.tb_lineno}"
             return InternalServer_Response(error_message)
         
+
+# API FOR GET PAYMENT DATA
+class PaymentDetailView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self , request):
+        try:
+            usr_id = request.user.id
+            #usr_id = request.data.get("id")
+
+            payment_obj = PaymentDetails.objects.filter(user_id=usr_id).values()
+
+            # handle payment object not found
+            if not payment_obj:
+                return NOT_FOUND_RESPONSE(f"User has not payment detail with id : {usr_id}")
+            
+
+            import pandas as pd
+            df = pd.DataFrame(list(payment_obj))
+
+            filtered_columns = ["customer_name", "email", "invoice_id", "date", "payment_due", "amount" ,"currency", "plan_type", "payment_status"]
+
+            filtered_df = df[filtered_columns]
+
+            # rename column
+            filtered_df.rename(columns={'date': 'start_date'}, inplace=True)
+
+            filtered_df["amount"] =filtered_df["amount"].apply(lambda x: f"€{x}")
+            
+            json_output = filtered_df.to_dict(orient="records")
+
+            # Return Response
+            return Response({
+                "message": "success",
+                "status": 200,
+                "data": json_output
+            })
+        except Exception as e:
+            exc_type , exc_obj , exc_tb = sys.exc_info()
+            error_messsage = f'failed to get payment detail data,  {str(e)} at line {exc_tb.tb_lineno}'
+            return InternalServer_Response(error_messsage)

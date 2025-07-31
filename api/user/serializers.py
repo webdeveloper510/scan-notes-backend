@@ -19,7 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
             "school",
             "teacher",
             "software",
-            "subscription_status",
             "file_upload_count"
         ]
         read_only_field = ["id"]

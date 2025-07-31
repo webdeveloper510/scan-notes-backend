@@ -102,8 +102,6 @@ class ContactSupportModel(models.Model):
     reason = models.CharField(max_length=100)
     message = models.TextField()
 
-
-
 # Model for user track
 class ImageAnalysisModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -111,8 +109,6 @@ class ImageAnalysisModel(models.Model):
     file_url = models.CharField(max_length=200 , null=True  , blank =True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
    
-
-
 # Model for user track
 class CropImageHistoryModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -122,7 +118,6 @@ class CropImageHistoryModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     title =  models.CharField(max_length=500 , null=True , blank=True)
     COMPOSER =  models.CharField(max_length=500 , null=True , blank=True)
-
 
 # Model to save payment details
 class PaymentDetails(models.Model):

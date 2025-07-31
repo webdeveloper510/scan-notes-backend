@@ -506,9 +506,9 @@ class PaymentDetailView(APIView):
 
             import pandas as pd
             df = pd.DataFrame(list(payment_obj))
-   
-
-
+            
+            print(df.columns.tolist())
+            
             rename_columns= {
                 "thrive_customer_name": "customer_name",
                 "thrive_customer_email": "email",
@@ -518,20 +518,32 @@ class PaymentDetailView(APIView):
 
             df.rename(columns=rename_columns, inplace=True)
 
-            filtered_columns = ["customer_name", "email", "invoice_id", "start_date", "end_date", "amount" ,"currency", "plan_type", "payment_status", "subscription_status"]
+            subscription_status = df.loc[0, "subscription_status"]
 
-            filtered_df = df[filtered_columns]
+            if subscription_status=="active":
 
-            filtered_df["amount"] =filtered_df["amount"].apply(lambda x: f"€{x}")
+                filtered_columns = ["customer_name", "email", "invoice_id", "start_date", "end_date", "amount" ,"currency", "plan_type", "subscription_status"]
+
+                filtered_df = df[filtered_columns]
+
+                filtered_df["amount"] =filtered_df["amount"].apply(lambda x: f"€{x}")
             
-            json_output = filtered_df.to_dict(orient="records")
+                json_output = filtered_df.to_dict(orient="records")
 
-            # Return Response
-            return Response({
-                "message": "success",
-                "status": 200,
-                "data": json_output
-            })
+                # Return Response
+                return Response({
+                    "message": "success",
+                    "status": 200,
+                    "data": json_output
+                })
+            else:
+                # Return Response
+               return Response({
+                    "message": "User has not active subscription",
+                    "status": status.HTTP_404_NOT_FOUND,  # <-- FIXED
+                    "data": []
+                })
+
         except Exception as e:
             exc_type , exc_obj , exc_tb = sys.exc_info()
             error_messsage = f'failed to get payment detail data,  {str(e)} at line {exc_tb.tb_lineno}'

@@ -76,6 +76,3 @@ def get_subscription_id(email , mode):
         error_message = f"Failed to fetch ThriveCart data: {str(e)} at line {exc_tb.tb_lineno}"
         return error_message
     
-
-res = cancel_subscription("36404890" , "5223919" , "test")
-print("res ", res)

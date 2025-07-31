@@ -77,6 +77,5 @@ def get_subscription_id(email , mode):
         return error_message
     
 
-response = get_subscription_id('mandeepsharma@codenomad.net', "test")
-print("response ", response)
-
+res = cancel_subscription("36404890" , "5223919" , "test")
+print("res ", res)

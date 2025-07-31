@@ -382,13 +382,13 @@ class WriteTitleComposerView(APIView):
             return InternalServer_Response(error_message)
 
 
-
 # API FOR Thrive cart webhook payment
 class ThriveCartWebhookView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             # Get data
             data = request.data
+            print("data ====> ", data)
             event_type = data.get('event')
             customer = data.get('customer', {})
             currency = data.get('currency', {})
@@ -482,12 +482,12 @@ class ThriveCartWebhookView(APIView):
 
 # API FOR GET PAYMENT DATA
 class PaymentDetailView(APIView):
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,)
 
     def get(self , request):
         try:
-            usr_id = request.user.id
-            #usr_id = request.data.get("id")
+            #usr_id = request.user.id
+            usr_id = request.data.get("id")
 
             payment_obj = PaymentDetails.objects.filter(user_id=usr_id).values()
 

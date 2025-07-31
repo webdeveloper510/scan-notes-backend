@@ -41,9 +41,10 @@ class UserFreeTRailStausView(APIView):
                 return NOT_FOUND_RESPONSE("User not found")
 
             # Get subscription status and file count
-            is_paid = user_obj.subscription_status
             file_count = user_obj.file_upload_count or 0  # Handle None safely
             payment_status =""
+
+            print("file_count ", file_count)
 
             # filter put payment details
             payment_obj = PaymentDetails.objects.filter(user_id= user_obj.id).first()
@@ -52,15 +53,15 @@ class UserFreeTRailStausView(APIView):
                 payment_status = False
 
             else:
-                payment_status = payment_obj.event_type
+                payment_status = payment_obj.subscription_status
 
             # Check trial limit
-            if file_count >=5 and not is_paid:
-                message = "You have active subscription " if payment_status == "order.success" else "Your free trial limit has expired"
+            if file_count >=5:
+                message = "You have active subscription " if payment_status == "active" else "Your free trial limit has expired"
                 return FREE_TRAIL_EXPIRED_RESPONSE(False , payment_status,message)
             
             # if free trial is pending
-            message = "You have active subscription " if payment_status == "order.success" else  "Trial access is valid"
+            message = "You have active subscription " if payment_status == "active" else  "Trial access is valid"
             return TRAIL_PENDING(True ,payment_status ,  message)
 
         except Exception as e:
@@ -403,8 +404,6 @@ class ThriveCartWebhookView(APIView):
             # Get subscription details
             response = get_subscription_id(thrive_customer_email, mode)
 
-            print(response)
-            print()
             if response and "subscriptions" in response:
                 subscription_data = response.get("subscriptions")
                 subscription_id = subscription_data[0]['subscription_id']
@@ -431,8 +430,17 @@ class ThriveCartWebhookView(APIView):
             product_name = order.get("charges", [{}])[0].get("name")
             product_id = order.get("charges", [{}])[0].get('item_identifier')
 
+            # filter out user based on the email
             user_obj = User.objects.filter(email=thrive_customer_email).first()
             if not user_obj:
+                # call function to cancel subscription
+                cancel_response= cancel_subscription(order_id , subscription_id , mode)
+                if 'error' in cancel_response:
+                    return Response({
+                        "status":status.HTTP_400_BAD_REQUEST,
+                        "success": False,
+                        "message": cancel_response['error']
+                    })
                 return NOT_FOUND_RESPONSE(f"No user found with email: {thrive_customer_email}")
 
             # Create or update PaymentDetails object
@@ -555,7 +563,6 @@ class CancelSubscriptionView(APIView):
 
             if subscription_status == "active" and subscription_id not in [0 , "0", "None"]:
                 cancel_response = cancel_subscription(order_id, subscription_id, mode)
-                print("cancel_response ", cancel_response)
                 
                 if 'error' in cancel_response:
                     return Response({

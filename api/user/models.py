@@ -62,7 +62,6 @@ class UserManager(BaseUserManager):
 
         return user
 
-
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(db_index=True, unique=True)
     is_active = models.BooleanField(default=True)
@@ -76,7 +75,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     school = models.CharField(max_length=255)
     teacher = models.BooleanField(default=False)
     software = models.CharField(max_length=255)
-    subscription_status =models.BooleanField(default=False) 
     file_upload_count = models.IntegerField(default=0)
 
 

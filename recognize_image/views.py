@@ -507,7 +507,6 @@ class PaymentDetailView(APIView):
             import pandas as pd
             df = pd.DataFrame(list(payment_obj))
             
-            print(df.columns.tolist())
             
             rename_columns= {
                 "thrive_customer_name": "customer_name",

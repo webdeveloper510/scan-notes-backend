@@ -22,7 +22,7 @@ def FREE_TRAIL_EXPIRED_RESPONSE(Trail_Status , payment_status, message):
     return Response({
         "status": status.HTTP_403_FORBIDDEN,
         "trial": Trail_Status,
-        "payment_status": payment_status,
+        "subscription_status": payment_status,
         "message":message
         })
 
@@ -33,7 +33,7 @@ def TRAIL_PENDING(Trail_Status ,payment_status, message):
     return Response({
         "status": status.HTTP_200_OK,
         "trial": Trail_Status,
-        "payment_status": payment_status,
+        "subscription_status": payment_status,
         "message":message
         })
 

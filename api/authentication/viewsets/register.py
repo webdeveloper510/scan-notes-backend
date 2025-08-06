@@ -8,7 +8,8 @@ from api.authentication.serializers import RegisterSerializer
 class RegisterViewSet(viewsets.ModelViewSet):
     http_method_names = ["post"]
     permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializer            
+    serializer_class = RegisterSerializer        
+    
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)                 # Get Serializer detect the serializer_class for exmaple i have mentioned "RegisterSerializer" 

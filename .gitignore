@@ -74,6 +74,7 @@ instance/
 docs/_build/
 
 # PyBuilder
+temp_auto_push.bat
 target/
 
 # Jupyter Notebook
@@ -151,3 +152,5 @@ envusers/migrations/
 # Ignore migrations
 api/user/__pycache__/
 api/authentication/__pycache__
+.gitignore
+temp_interactive_push.bat

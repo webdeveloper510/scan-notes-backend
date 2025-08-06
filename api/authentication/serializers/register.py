@@ -8,6 +8,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=4, max_length=128, write_only=True)
     first_name = serializers.CharField(max_length=255, required=True)
     email = serializers.EmailField(required=True)
+    school = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
 
     class Meta:
         model = User

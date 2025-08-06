@@ -44,8 +44,6 @@ class UserFreeTRailStausView(APIView):
             file_count = user_obj.file_upload_count or 0  # Handle None safely
             payment_status =""
 
-            print("file_count ", file_count)
-
             # filter put payment details
             payment_obj = PaymentDetails.objects.filter(user_id= user_obj.id).first()
 
